@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block page_title %}Payroll{% endblock %}
+{% block extra_head %}
+<style>
+  /* Match the Dashboard's navy, cyan and white card language. */
+  .payroll-home,
+  .payroll-home * { box-sizing: border-box; }
+  .payroll-home {
+    --pay-navy: var(--navy, #143256);
+    --pay-navy-deep: #0F2744;
+    --pay-cyan: var(--sky, #59CBE8);
+    --pay-border: var(--border, #DDE3E9);
+    --pay-muted: var(--text2, #5B6B7F);
+    --pay-surface: var(--card, #FFFFFF);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+  }
+
+  .pay-feature {
+    display: flex;
+    min-width: 0;
+    min-height: 285px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 24px 26px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(18, 48, 79, .2);
+    border-radius: 5px;
+    color: #fff;
+    text-decoration: none;
+    background: radial-gradient(90% 70% at 100% 0%, rgba(89,203,232,.35), transparent 60%), #143256;
+    box-shadow: 0 1px 3px rgba(15, 35, 55, .08);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .pay-feature:hover,
+  .pay-feature:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 9px 24px rgba(15, 42, 70, .16);
+    border-color: var(--pay-cyan);
+    outline: none;
+  }
+  .pay-feature:focus-visible,
+  .pay-quick-card:focus-visible { outline: 2px solid var(--pay-cyan); outline-offset: 3px; }
+  .pay-feature-head { display: flex; width: 100%; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  .pay-feature-icon {
+    display: grid;
+    width: 72px;
+    height: 72px;
+    flex: 0 0 72px;
+    place-items: center;
+    border-radius: 50%;
+    border: 5px solid rgba(89,203,232,.23);
+    background: var(--pay-cyan);
+    color: var(--pay-navy);
+    font-size: 29px;
+    box-shadow: 0 0 0 1px rgba(89,203,232,.1);
+  }
+  .pay-feature-copy { margin-top: 30px; max-width: 460px; }
+  .pay-feature-kicker {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--pay-cyan);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .pay-feature-title {
+    display: block;
+    margin: 0 0 9px;
+    color: #fff;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(23px, 2vw, 28px);
+    font-weight: 500;
+    line-height: 1.25;
+  }
+  .pay-feature-desc { display: block; color: rgba(255,255,255,.82); font-size: 13px; line-height: 1.65; }
+  .pay-feature-footer { display: flex; align-items: center; gap: 8px; margin-top: 25px; color: var(--pay-cyan); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .pay-feature-footer .arrow { font-size: 16px; transition: transform .18s ease; }
+  .pay-feature:hover .pay-feature-footer .arrow { transform: translateX(4px); }
+
+  .pay-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    min-width: 0;
+  }
+  .pay-quick-card {
+    display: flex;
+    min-width: 0;
+    min-height: 135px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 17px 18px 15px;
+    border: 1px solid var(--pay-border);
+    border-radius: 5px;
+    background: var(--pay-surface);
+    color: var(--heading, #143256);
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(20,50,86,.06);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .pay-quick-card:hover,
+  .pay-quick-card:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(73,201,231,.85);
+    box-shadow: 0 8px 20px rgba(15, 35, 55, .09);
+    outline: none;
+  }
+  .pay-quick-head { display: flex; width: 100%; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+  .pay-quick-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    place-items: center;
+    border: 1px solid var(--icon-bg, var(--pay-navy));
+    border-radius: 9px;
+    background: var(--icon-bg, var(--pay-navy));
+    color: var(--icon-fg, #FFFFFF);
+    font-size: 20px;
+    line-height: 1;
+  }
+  .pay-quick-arrow {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    flex: 0 0 25px;
+    place-items: center;
+    border: 1px solid var(--pay-border);
+    border-radius: 50%;
+    color: var(--pay-muted);
+    font-size: 14px;
+    transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+  }
+  .pay-quick-card:hover .pay-quick-arrow { transform: translate(2px,-2px); color: var(--btn-fg, #FFFFFF); background: var(--sky, var(--pay-cyan)); border-color: var(--sky, var(--pay-cyan)); }
+  .pay-quick-title { display: block; margin: 0 0 5px; color: var(--heading, #143256); font-family: var(--font-head, Georgia, 'Times New Roman', serif); font-size: 22px; font-weight: 700; line-height: 1.2; }
+  .pay-quick-desc { display: block; color: var(--pay-muted); font-size: 12px; line-height: 1.55; }
+  .pay-quick-action { display: block; margin-top: auto; padding-top: 13px; color: var(--eyebrow, #2A8FAE); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+
+  /* Keep Payroll's dark palette identical to the Dashboard: charcoal surfaces, cyan accents. */
+  [data-theme="dark"] .payroll-home .pay-feature {
+    background: radial-gradient(90% 70% at 100% 0%, rgba(89,203,232,.14), transparent 62%), #252A2F;
+    border: 1px solid #394148;
+    color: #F1F3F5;
+  }
+  [data-theme="dark"] .payroll-home .pay-feature-icon {
+    background: #343B42;
+    color: #70CDE2;
+    border-color: rgba(89,203,232,.10);
+    box-shadow: 0 0 0 5px rgba(89,203,232,.10);
+  }
+  [data-theme="dark"] .payroll-home .pay-feature-kicker,
+  [data-theme="dark"] .payroll-home .pay-feature-footer { color: #70CDE2; }
+  [data-theme="dark"] .payroll-home .pay-feature-title { color: #F1F3F5; }
+  [data-theme="dark"] .payroll-home .pay-feature-desc { color: #C0C7CD; }
+  [data-theme="dark"] .payroll-home .pay-quick-card { color: var(--heading, #F5F6F7); }
+  [data-theme="dark"] .payroll-home .pay-quick-title { color: #F5F6F7; }
+  [data-theme="dark"] .payroll-home .pay-quick-desc { color: #A9B1B8; }
+  [data-theme="dark"] .payroll-home .pay-quick-action { color: #70CDE2; }
+  [data-theme="dark"] .payroll-home .pay-quick-arrow { background: #252A2F; color: #A9B1B8; border-color: #394148; }
+  [data-theme="dark"] .payroll-home .pay-quick-card:hover .pay-quick-arrow { background: #59CBE8; color: #11171C; border-color: #59CBE8; }
+
+  @media (max-width: 1100px) {
+    .payroll-home { grid-template-columns: minmax(0, 1fr); }
+    .pay-feature { min-height: 245px; }
+    .pay-quick-grid { grid-template-rows: auto; }
+    .pay-quick-card { min-height: 145px; }
+  }
+  @media (max-width: 620px) {
+    .payroll-home { gap: 12px; }
+    .pay-feature { min-height: 240px; padding: 20px; }
+    .pay-feature-copy { margin-top: 22px; }
+    .pay-feature-title { font-size: 23px; }
+    .pay-quick-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    .pay-quick-card { min-height: 0; padding: 15px; }
+    .pay-quick-head { margin-bottom: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pay-feature, .pay-quick-card, .pay-feature-footer .arrow, .pay-quick-arrow { transition: none; }
+    .pay-feature:hover, .pay-quick-card:hover, .pay-quick-card:hover .pay-quick-arrow { transform: none; }
+  }
+</style>
+{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+<div class="payroll-home" aria-label="Payroll workspace">
+  <a href="{{ url_for('payroll_manual') }}" class="pay-feature">
+    <span class="pay-feature-head">
+      <span class="pay-feature-icon" aria-hidden="true">♙</span>
+    </span>
+    <span class="pay-feature-copy">
+      <span class="pay-feature-kicker">Individual payroll</span>
+      <span class="pay-feature-title">Manual Entry Payroll</span>
+      <span class="pay-feature-desc">Select an employee, enter monthly deductions, calculate the result, and save the payroll entry.</span>
+    </span>
+    <span class="pay-feature-footer">Open manual entry <span class="arrow" aria-hidden="true">→</span></span>
+  </a>
+
+  <nav class="pay-quick-grid" aria-label="Other payroll tasks">
+    <a href="{{ url_for('payroll_run_all') }}" class="pay-quick-card">
+      <span class="pay-quick-head"><span class="pay-quick-icon" aria-hidden="true">▶</span><span class="pay-quick-arrow" aria-hidden="true">↗</span></span>
+      <span class="pay-quick-title">Run Monthly Payroll</span>
+      <span class="pay-quick-desc">Run payroll for all active employees using attendance data.</span>
+      <span class="pay-quick-action">Run payroll</span>
+    </a>
+
+    <a href="{{ url_for('payroll_history') }}" class="pay-quick-card">
+      <span class="pay-quick-head"><span class="pay-quick-icon" aria-hidden="true">▤</span><span class="pay-quick-arrow" aria-hidden="true">↗</span></span>
+      <span class="pay-quick-title">Payroll History</span>
+      <span class="pay-quick-desc">Review previous months, employee details, and payroll exports.</span>
+      <span class="pay-quick-action">View history</span>
+    </a>
+
+    <a href="{{ url_for('payroll_rollback') }}" class="pay-quick-card">
+      <span class="pay-quick-head"><span class="pay-quick-icon" aria-hidden="true">↶</span><span class="pay-quick-arrow" aria-hidden="true">↗</span></span>
+      <span class="pay-quick-title">Rollback Month Payroll</span>
+      <span class="pay-quick-desc">Remove payroll entries for a selected month before running it again.</span>
+      <span class="pay-quick-action">Manage rollback</span>
+    </a>
+
+    <a href="{{ url_for('payroll_settings') }}" class="pay-quick-card">
+      <span class="pay-quick-head"><span class="pay-quick-icon" aria-hidden="true">⚙</span><span class="pay-quick-arrow" aria-hidden="true">↗</span></span>
+      <span class="pay-quick-title">Payroll Settings</span>
+      <span class="pay-quick-desc">Manage exemptions, social insurance caps, tax brackets, and shift times.</span>
+      <span class="pay-quick-action">Open settings</span>
+    </a>
+  </nav>
+</div>
+{% endblock %}

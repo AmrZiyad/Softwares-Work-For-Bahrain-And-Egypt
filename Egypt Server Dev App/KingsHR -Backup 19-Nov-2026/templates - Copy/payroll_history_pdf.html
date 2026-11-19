@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payroll History — Summary</title>
+<style>
+  :root {
+    --ink: #18212f;
+    --muted: #667085;
+    --line: #e2e7ed;
+    --soft: #f5f7fa;
+    --green: #16865c;
+    --green-soft: #eaf6ef;
+    --header: #202833;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 12mm 10mm 13mm;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    color: var(--ink);
+    background: #fff;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    font-size: 10px;
+    line-height: 1.45;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .report { width: 100%; margin: 0 auto; }
+
+  .report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 0 0 15px;
+    margin-bottom: 14px;
+    border-bottom: 2px solid var(--green);
+  }
+  .eyebrow {
+    margin: 0 0 5px;
+    color: var(--green);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 23px;
+    line-height: 1.2;
+    font-weight: 750;
+    letter-spacing: -.035em;
+  }
+  .subtitle { margin: 5px 0 0; color: var(--muted); font-size: 10px; }
+  .generated {
+    flex: 0 0 auto;
+    min-width: 150px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    text-align: right;
+  }
+  .generated-label {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--muted);
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .generated-value { color: var(--ink); font-size: 9px; font-weight: 650; }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+    margin-bottom: 16px;
+  }
+  .summary-card {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    break-inside: avoid;
+  }
+  .summary-label {
+    margin: 0 0 6px;
+    color: var(--muted);
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+  .summary-value {
+    display: block;
+    overflow-wrap: anywhere;
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 750;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+  }
+  .summary-value.net { color: var(--green); }
+  .summary-note { margin: 4px 0 0; color: var(--muted); font-size: 8px; }
+
+  .table-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 7px;
+  }
+  h2 { margin: 0; font-size: 12px; font-weight: 750; letter-spacing: -.01em; }
+  .record-count { color: var(--muted); font-size: 8px; white-space: nowrap; }
+  .table-frame {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  thead { display: table-header-group; }
+  thead th {
+    padding: 8px 7px;
+    border-bottom: 1px solid #303b49;
+    background: var(--header);
+    color: #fff;
+    font-size: 7px;
+    font-weight: 750;
+    letter-spacing: .045em;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  th.num, td.num { text-align: right; }
+  tbody td {
+    padding: 7px;
+    border-bottom: 1px solid var(--line);
+    color: #303a49;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  tbody tr:nth-child(even) td { background: #f7f9fb; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { color: var(--ink); font-weight: 700; }
+  tbody td.net-cell { color: var(--green); font-weight: 750; }
+  tfoot { display: table-row-group; }
+  tfoot td {
+    padding: 9px 7px;
+    border-top: 2px solid var(--green);
+    background: var(--green-soft);
+    color: var(--ink);
+    font-weight: 800;
+    text-align: left;
+    white-space: nowrap;
+  }
+  tfoot td.net-cell { color: var(--green); }
+  .empty-state {
+    padding: 24px 12px;
+    color: var(--muted);
+    background: #fff;
+    text-align: center;
+  }
+  .report-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    padding-top: 7px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 7px;
+  }
+  .report-footer strong { color: #475467; font-weight: 700; }
+
+  @media screen and (max-width: 760px) {
+    body { font-size: 11px; }
+    .report-header { flex-direction: column; gap: 10px; }
+    .generated { align-self: stretch; text-align: left; }
+    .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .table-frame { overflow-x: auto; }
+    table { min-width: 880px; }
+  }
+
+  @media print {
+    .report-header { margin-bottom: 10px; padding-bottom: 10px; }
+    h1 { font-size: 20px; }
+    .summary-grid { gap: 7px; margin-bottom: 11px; }
+    .summary-card { padding: 8px 10px; border-radius: 5px; }
+    .summary-value { font-size: 14px; }
+    .table-frame { overflow: visible; border-radius: 5px; }
+    table { min-width: 0; font-size: 7.5px; }
+    thead th { padding: 6px 5px; font-size: 6.5px; }
+    tbody td { padding: 6px 5px; }
+    tfoot td { padding: 7px 5px; }
+    tr { break-inside: avoid; page-break-inside: avoid; }
+    .report-footer { margin-top: 7px; }
+  }
+</style>
+</head>
+<body>
+<main class="report">
+  <header class="report-header">
+    <div>
+      <p class="eyebrow">HR &amp; Payroll · Report</p>
+      <h1>Payroll History</h1>
+      <p class="subtitle">Monthly payroll summary and deduction overview</p>
+    </div>
+    <div class="generated">
+      <span class="generated-label">Report generated</span>
+      <span class="generated-value">{{ generated }}</span>
+    </div>
+  </header>
+
+  <section class="summary-grid" aria-label="Payroll totals">
+    <div class="summary-card">
+      <p class="summary-label">Payroll periods</p>
+      <strong class="summary-value">{{ months|length }}</strong>
+      <p class="summary-note">Months included in this report</p>
+    </div>
+    <div class="summary-card">
+      <p class="summary-label">Employee entries</p>
+      <strong class="summary-value">{{ months|sum(attribute='emps') }}</strong>
+      <p class="summary-note">Employee records across payroll periods</p>
+    </div>
+    <div class="summary-card">
+      <p class="summary-label">Total gross</p>
+      <strong class="summary-value">{{ "{:,.2f}".format(months|sum(attribute='gross')) }}</strong>
+      <p class="summary-note">Before deductions</p>
+    </div>
+    <div class="summary-card">
+      <p class="summary-label">Net salary</p>
+      <strong class="summary-value net">{{ "{:,.2f}".format(months|sum(attribute='net')) }}</strong>
+      <p class="summary-note">After recorded deductions</p>
+    </div>
+  </section>
+
+  <section aria-label="Monthly payroll history">
+    <div class="table-heading">
+      <h2>Monthly breakdown</h2>
+      <span class="record-count">{{ months|length }} payroll period{% if months|length != 1 %}s{% endif %}</span>
+    </div>
+    <div class="table-frame">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th class="num">Emps</th>
+            <th class="num">Total Gross</th>
+            <th class="num">SI</th>
+            <th class="num">Income Tax</th>
+            <th class="num">Day Deds</th>
+            <th class="num">Loan</th>
+            <th class="num">Total Ded</th>
+            <th class="num">Net Salary</th>
+            <th>Run Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in months %}
+          <tr>
+            <td><strong>{{ m.month }}</strong></td>
+            <td class="num">{{ m.emps }}</td>
+            <td class="num">{{ "{:,.2f}".format(m.gross or 0) }}</td>
+            <td class="num">{{ "{:,.2f}".format(m.si or 0) }}</td>
+            <td class="num">{{ "{:,.2f}".format(m.tax or 0) }}</td>
+            <td class="num">{{ "{:,.2f}".format(m.ded or 0) }}</td>
+            <td class="num">{{ "{:,.2f}".format(m.loan or 0) }}</td>
+            <td class="num">{{ "{:,.2f}".format(m.total_ded or 0) }}</td>
+            <td class="num net-cell">{{ "{:,.2f}".format(m.net or 0) }}</td>
+            <td>{{ m.run_date or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td class="empty-state" colspan="10">No payroll history is available for this report.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>TOTAL</td>
+            <td class="num">{{ months|sum(attribute='emps') }}</td>
+            <td class="num">{{ "{:,.2f}".format(months|sum(attribute='gross')) }}</td>
+            <td class="num">{{ "{:,.2f}".format(months|sum(attribute='si')) }}</td>
+            <td class="num">{{ "{:,.2f}".format(months|sum(attribute='tax')) }}</td>
+            <td class="num">{{ "{:,.2f}".format(months|sum(attribute='ded')) }}</td>
+            <td class="num">{{ "{:,.2f}".format(months|sum(attribute='loan')) }}</td>
+            <td class="num">{{ "{:,.2f}".format(months|sum(attribute='total_ded')) }}</td>
+            <td class="num net-cell">{{ "{:,.2f}".format(months|sum(attribute='net')) }}</td>
+            <td>—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <footer class="report-footer">
+    <span><strong>HR &amp; Payroll</strong> · Payroll History Summary</span>
+    <span>Confidential — For authorised use only</span>
+  </footer>
+</main>
+</body>
+</html>

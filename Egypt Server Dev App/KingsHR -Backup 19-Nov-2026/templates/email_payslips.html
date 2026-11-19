@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+.email-page { display: grid; gap: 22px; max-width: 760px; }
+
+.email-config-card { }
+.email-config-card .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.email-config-card .form-grid .span2 { grid-column: span 2; }
+@media (max-width: 580px) {
+  .email-config-card .form-grid { grid-template-columns: 1fr; }
+  .email-config-card .form-grid .span2 { grid-column: span 1; }
+}
+
+.smtp-hint {
+  font-size: 11.5px; color: var(--text2);
+  border-left: 3px solid var(--sky, #59CBE8);
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: 0 var(--radius,6px) var(--radius,6px) 0;
+  line-height: 1.7;
+}
+.smtp-hint code { background: var(--card); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+/* Month + send row */
+.send-row {
+  display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+  padding-top: 20px; border-top: 1px solid var(--border); margin-top: 4px;
+}
+.send-row .form-group { margin: 0; }
+.send-row .form-group label { font-size: 10.5px; }
+.send-row input[type="month"] { min-height: 42px; min-width: 180px; }
+.btn-email { background: var(--navy, #143256); color: #fff; border: none; }
+.btn-email:hover { background: #0f2540; }
+.btn-email svg { width:16px;height:16px;fill:none;stroke:currentColor;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+  vertical-align:-2px;margin-right:5px; }
+
+/* Log card */
+.log-card { padding: 0; overflow: hidden; }
+.log-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+.log-head strong {
+  font-family: var(--font-head,'Cormorant Garamond',Georgia,serif);
+  font-size: 19px; color: var(--heading);
+}
+.log-body { padding: 14px 18px; max-height: 54vh; overflow-y: auto; }
+.log-line { font-size: 12.5px; font-family: monospace; padding: 3px 0;
+  border-bottom: 1px solid var(--border); display: flex; gap: 10px; }
+.log-line:last-child { border-bottom: none; }
+.log-icon-ok   { color: #16a34a; font-weight: 800; flex-shrink: 0; }
+.log-icon-err  { color: var(--red, #DC001E); font-weight: 800; flex-shrink: 0; }
+.log-icon-skip { color: var(--text2); font-weight: 600; flex-shrink: 0; }
+.log-text { color: var(--heading); }
+</style>
+{% endblock %}
+
+{% block page_title %}Email Payslips{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('payroll_run_all') }}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="email-page">
+
+  <!-- ── Subtitle ── -->
+  <p style="margin:0;color:var(--text2);font-size:13px;">
+    Generate and email payslips to all employees for a payroll month.
+    Configuration is saved automatically — you only need to fill it in once.
+  </p>
+
+  <!-- ── Config + Send form ── -->
+  <div class="card email-config-card">
+    <h3 style="margin:0 0 18px;font-size:15px;font-weight:700;color:var(--heading);">Email Configuration</h3>
+
+    <form method="POST">
+      <div class="form-grid">
+
+        <div class="form-group span2">
+          <label>From Email</label>
+          <input type="email" name="smtp_user" required
+                 value="{{ cfg.get('smtp_user','') }}"
+                 placeholder="e.g. kingscrownschoolpayroll@gmail.com">
+        </div>
+
+        <div class="form-group span2">
+          <label>App Password <span style="font-weight:400;color:var(--text2);">(leave blank to keep existing)</span></label>
+          <input type="password" name="smtp_pass" autocomplete="new-password"
+                 placeholder="{% if cfg.get('smtp_pass') %}••••••••••••••••{% else %}Paste 16-character app password{% endif %}">
+        </div>
+
+        <div class="form-group">
+          <label>SMTP Server</label>
+          <input type="text" name="smtp_host"
+                 value="{{ cfg.get('smtp_host','smtp.gmail.com') }}"
+                 placeholder="smtp.gmail.com">
+        </div>
+
+        <div class="form-group">
+          <label>Port</label>
+          <input type="number" name="smtp_port"
+                 value="{{ cfg.get('smtp_port','587') }}"
+                 placeholder="587" style="max-width:120px;">
+        </div>
+
+        <div class="form-group span2">
+          <label>Display Name (From)</label>
+          <input type="text" name="smtp_from"
+                 value="{{ cfg.get('smtp_from','Kings School Egypt') }}"
+                 placeholder="Kings School Egypt">
+        </div>
+
+        <div class="form-group span2">
+          <label>Email Subject</label>
+          <input type="text" name="smtp_subject"
+                 value="{{ cfg.get('smtp_subject','Your Payslip — Kings School Egypt') }}"
+                 placeholder="Your Payslip — Kings School Egypt">
+        </div>
+
+      </div>
+
+      <div class="smtp-hint" style="margin-top:16px;">
+        <strong>Gmail setup:</strong> go to
+        <code>myaccount.google.com</code> → Security → 2-Step Verification <strong>ON</strong>
+        → App Passwords → create one for "Mail". Paste the 16-character password above.<br>
+        <strong>Microsoft / Office 365:</strong> change server to <code>smtp.office365.com</code>,
+        port <code>587</code>, and use your Microsoft email and password.
+      </div>
+
+      <!-- ── Month picker + Send button ── -->
+      <div class="send-row">
+        <div class="form-group">
+          <label>Payroll Month</label>
+          <input type="month" name="month" value="{{ month }}" required>
+        </div>
+        <button type="submit" class="btn btn-email">
+          <svg viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          Send Payslips to All
+        </button>
+        <a href="{{ url_for('payroll_run_all') }}" class="btn btn-secondary">Back</a>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ── Log ── -->
+  {% if log_lines %}
+  <div class="card log-card">
+    <div class="log-head">
+      <strong>Send Log</strong>
+      <span style="font-size:12px;color:var(--text2);">
+        {{ log_lines|selectattr(0,'equalto','ok')|list|length }} sent &nbsp;·&nbsp;
+        {{ log_lines|selectattr(0,'equalto','skip')|list|length }} skipped &nbsp;·&nbsp;
+        {{ log_lines|selectattr(0,'equalto','err')|list|length }} failed
+      </span>
+    </div>
+    <div class="log-body">
+      {% for kind, msg in log_lines %}
+      <div class="log-line">
+        {% if kind == 'ok' %}
+          <span class="log-icon-ok">✓</span>
+        {% elif kind == 'err' %}
+          <span class="log-icon-err">✗</span>
+        {% else %}
+          <span class="log-icon-skip">–</span>
+        {% endif %}
+        <span class="log-text">{{ msg }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

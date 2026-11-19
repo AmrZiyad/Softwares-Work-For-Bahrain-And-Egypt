@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block page_title %}Reports{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+<div class="mode-grid">
+  <a href="{{ url_for('reports_run', type='payroll_summary') }}" class="mode-card">
+    <div class="mc-icon">💵</div>
+    <div class="mc-title">Payroll Summary</div>
+    <div class="mc-desc">Full breakdown per employee for a given month.</div>
+  </a>
+  <a href="{{ url_for('reports_run', type='headcount') }}" class="mode-card">
+    <div class="mc-icon">👥</div>
+    <div class="mc-title">Headcount by Department</div>
+    <div class="mc-desc">Active employee count grouped by department.</div>
+  </a>
+  <a href="{{ url_for('reports_run', type='salary_register') }}" class="mode-card">
+    <div class="mc-icon">📋</div>
+    <div class="mc-title">Salary Register</div>
+    <div class="mc-desc">All employee salary components and totals.</div>
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+/* User manager — accounts list on the left, selected account on the right. Uses the shared theme tokens. */
+.um-layout { display:grid; grid-template-columns:minmax(280px,360px) minmax(0,1fr); gap:20px; align-items:start; }
+.um-layout .card { margin-bottom:0; }
+
+/* Accounts list */
+.um-list-card { padding:18px; position:sticky; top:14px; }
+.um-list-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.um-list-head strong { font-family:var(--font-head); font-size:22px; color:var(--heading); }
+.um-count { min-width:26px; padding:2px 9px; text-align:center; border-radius:99px; font-size:11px; font-weight:700; color:var(--heading); background:var(--row-hover); border:1px solid var(--border); }
+.um-search { margin-bottom:12px; }
+.um-items { display:grid; gap:8px; max-height:calc(100vh - 260px); overflow-y:auto; }
+.um-item {
+  display:flex; align-items:center; gap:12px; width:100%; padding:10px 12px; text-align:left;
+  background:transparent; color:var(--text); border:1px solid var(--border); border-radius:var(--radius);
+  font-family:var(--font-body); cursor:pointer; transition:background .15s, border-color .15s;
+}
+.um-item:hover { background:var(--row-hover); }
+.um-item.active { border-color:var(--sky); background:var(--row-hover); box-shadow:0 0 0 2px rgba(89,203,232,.25); }
+.um-item[hidden] { display:none; }
+.um-item.is-off .um-name, .um-item.is-off .um-user { opacity:.55; }
+.um-av {
+  width:38px; height:38px; border-radius:50%; flex:0 0 38px; display:flex; align-items:center; justify-content:center;
+  background:var(--icon-bg); color:var(--icon-fg); font-family:var(--font-head); font-size:19px; font-weight:700;
+}
+.um-av.lg { width:54px; height:54px; flex-basis:54px; font-size:26px; }
+.um-meta { min-width:0; flex:1; line-height:1.3; }
+.um-name { display:block; font-size:13.5px; font-weight:700; color:var(--heading); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.um-user { display:block; font-size:11.5px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.um-role { font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:99px; color:var(--heading); background:var(--row-hover); border:1px solid var(--border); white-space:nowrap; }
+.um-you { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; color:var(--heading); background:var(--row-hover); border:1px solid var(--border); vertical-align:middle; margin-left:6px; }
+.um-empty { padding:18px 6px; text-align:center; color:var(--text2); font-size:12.5px; }
+
+/* Detail panel */
+.um-detail { padding:26px; }
+.um-head { display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap; padding-bottom:20px; margin-bottom:22px; border-bottom:1px solid var(--border); }
+.um-head-main { flex:1; min-width:200px; line-height:1.35; }
+.um-head-main h2 { font-size:28px; font-weight:700; margin:0; }
+.um-head-main p { font-size:12.5px; color:var(--text2); margin-top:3px; }
+.um-role-box { min-width:190px; }
+.um-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-bottom:18px; }
+.um-field input[readonly] { opacity:.65; cursor:not-allowed; }
+.um-switch { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; margin:0; text-transform:none; letter-spacing:0; font-size:13px; font-weight:600; color:var(--text); }
+.um-switch input { width:16px; height:16px; padding:0; accent-color:var(--sky); flex:0 0 auto; }
+.um-switch small { display:block; font-weight:400; color:var(--text2); font-size:11.5px; }
+.um-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:22px; padding-top:18px; border-top:1px solid var(--border); }
+.um-actions .spacer { flex:1; }
+.um-actions .btn-danger { background:transparent; color:var(--error); border-color:var(--error); }
+.um-actions .btn-danger:hover { background:var(--error); color:#fff; }
+.um-actions .btn-danger[hidden] { display:none; }
+.btn:focus-visible, .um-item:focus-visible { outline:2px solid var(--sky); outline-offset:2px; }
+
+@media (max-width: 900px) {
+  .um-layout { grid-template-columns:minmax(0,1fr); }
+  .um-list-card { position:static; }
+  .um-items { max-height:260px; }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}User Manager{% endblock %}
+{% block topbar_actions %}
+  <button type="button" onclick="newUser()" class="btn btn-primary btn-sm">New User</button>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="um-layout">
+
+  <!-- Accounts -->
+  <aside class="card um-list-card">
+    <div class="um-list-head">
+      <strong>Accounts</strong>
+      <span class="um-count">{{ users|length }}</span>
+    </div>
+    <input type="text" id="umSearch" class="um-search" placeholder="Search name or username…" autocomplete="off">
+    <div class="um-items" id="umItems">
+      {% for u in users %}
+      <button type="button" class="um-item{% if not u.active %} is-off{% endif %}"
+        data-uid="{{ u.uid }}"
+        data-username="{{ u.username | e }}"
+        data-fullname="{{ u.fullname | e }}"
+        data-role="{{ u.role | e }}"
+        data-active="{{ 1 if u.active else 0 }}"
+        data-self="{{ 1 if u.username == session.user else 0 }}"
+        data-delete="{{ url_for('user_delete', uid=u.uid) }}">
+        <span class="um-av">{{ ((u.fullname or u.username) or '?')[:1]|upper }}</span>
+        <span class="um-meta">
+          <span class="um-name">{{ u.fullname or u.username }}{% if u.username == session.user %}<span class="um-you">You</span>{% endif %}</span>
+          <span class="um-user">@{{ u.username }}{% if not u.active %} · Inactive{% endif %}</span>
+        </span>
+        <span class="um-role">{{ u.role }}</span>
+      </button>
+      {% endfor %}
+      <div class="um-empty" id="umNoMatch" hidden>No accounts match your search.</div>
+    </div>
+  </aside>
+
+  <!-- Selected account -->
+  <section class="card um-detail">
+    <div class="um-head">
+      <span class="um-av lg" id="dAvatar">?</span>
+      <div class="um-head-main">
+        <h2 id="dTitle">New user</h2>
+        <p id="dSub">Fill in the details below to create an account.</p>
+      </div>
+      <div class="um-role-box form-group" style="margin-bottom:0;">
+        <label for="f_role">Account role <span style="color:var(--error)">*</span></label>
+        <select name="role" id="f_role" form="userForm" required>
+          {% for r in roles %}
+          <option value="{{ r }}">{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('user_save') }}" id="userForm">
+      <input type="hidden" name="uid" id="uid" value="">
+      <div class="um-grid">
+        <div class="um-field">
+          <label for="f_username">Username <span style="color:var(--error)">*</span></label>
+          <input type="text" name="username" id="f_username" autocomplete="off" required>
+        </div>
+        <div class="um-field">
+          <label for="f_fullname">Full name</label>
+          <input type="text" name="fullname" id="f_fullname" autocomplete="off">
+        </div>
+        <div class="um-field">
+          <label for="f_password">Password <span id="pwdHint" style="color:var(--text2);font-size:11px;text-transform:none;letter-spacing:0;">(leave blank to keep)</span></label>
+          <input type="password" name="password" id="f_password" autocomplete="new-password">
+        </div>
+      </div>
+
+      <label class="um-switch" for="f_active">
+        <input type="checkbox" name="active" id="f_active" value="1" checked>
+        <span>Active<small>Inactive accounts cannot sign in.</small></span>
+      </label>
+
+      <div class="um-actions">
+        <button type="submit" class="btn btn-primary" id="btnSave">Save changes</button>
+        <button type="button" class="btn btn-secondary" onclick="resetSelection()">Cancel</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-danger" id="btnDelete" hidden onclick="deleteUser()">Delete user</button>
+      </div>
+    </form>
+
+    <form method="POST" id="deleteForm" style="display:none;"></form>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var items   = Array.prototype.slice.call(document.querySelectorAll('.um-item'));
+  var $       = function (id) { return document.getElementById(id); };
+  var current = null;
+
+  function initial(t) { return (t || '?').trim().charAt(0).toUpperCase() || '?'; }
+
+  function fill(btn) {
+    current = btn;
+    items.forEach(function (i) { i.classList.toggle('active', i === btn); });
+
+    if (!btn) {                                   // new user
+      $('uid').value = '';
+      $('f_username').value = ''; $('f_username').readOnly = false; $('f_username').required = true;
+      $('f_fullname').value = ''; $('f_password').value = '';
+      $('f_role').selectedIndex = 0; $('f_active').checked = true;
+      $('dAvatar').textContent = '+';
+      $('dTitle').textContent = 'New user';
+      $('dSub').textContent = 'Fill in the details below to create an account.';
+      $('pwdHint').style.display = 'none';
+      $('f_password').required = false;
+      $('btnDelete').hidden = true;
+      $('btnSave').textContent = 'Create user';
+      return;
+    }
+
+    var d = btn.dataset;
+    $('uid').value = d.uid;
+    $('f_username').value = d.username; $('f_username').readOnly = true; $('f_username').required = false;
+    $('f_fullname').value = d.fullname;
+    $('f_password').value = '';
+    $('f_active').checked = d.active === '1';
+    var sel = $('f_role');
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === d.role) { sel.selectedIndex = i; break; }
+    }
+    $('dAvatar').textContent = initial(d.fullname || d.username);
+    $('dTitle').textContent  = d.fullname || d.username;
+    $('dSub').textContent    = 'Username: ' + d.username;
+    $('pwdHint').style.display = 'inline';
+    $('btnDelete').hidden = d.self === '1';        // you cannot delete your own account
+    $('btnSave').textContent = 'Save changes';
+    try { sessionStorage.setItem('um_sel', d.uid); } catch (e) {}
+  }
+
+  window.newUser = function () {
+    fill(null);
+    try { sessionStorage.removeItem('um_sel'); } catch (e) {}
+    $('f_username').focus();
+  };
+  window.resetSelection = function () { fill(current); };
+  window.deleteUser = function () {
+    if (!current) return;
+    if (!confirm('Delete user ' + current.dataset.username + '? This cannot be undone.')) return;
+    var f = $('deleteForm');
+    f.action = current.dataset.delete;
+    f.submit();
+  };
+
+  items.forEach(function (btn) { btn.addEventListener('click', function () { fill(btn); }); });
+
+  // Search
+  $('umSearch').addEventListener('input', function () {
+    var q = this.value.trim().toLowerCase(), shown = 0;
+    items.forEach(function (b) {
+      var hit = !q || (b.dataset.username + ' ' + b.dataset.fullname).toLowerCase().indexOf(q) !== -1;
+      b.hidden = !hit; if (hit) shown++;
+    });
+    $('umNoMatch').hidden = shown !== 0;
+  });
+
+  // Initial selection: last edited account, else the first one
+  var start = null, saved = null;
+  try { saved = sessionStorage.getItem('um_sel'); } catch (e) {}
+  items.forEach(function (b) { if (saved && b.dataset.uid === saved) start = b; });
+  fill(start || items[0] || null);
+})();
+</script>
+{% endblock %}

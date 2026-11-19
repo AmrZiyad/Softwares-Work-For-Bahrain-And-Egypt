@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+/* Three report destinations use the compact tile pattern from the Dashboard. */
+.reports-mode-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.reports-mode-grid .mode-card {
+  grid-template-columns: 1fr; justify-items: start; align-content: start;
+  min-height: 196px; row-gap: 10px; padding: 24px;
+}
+.reports-mode-grid .mode-card .mc-icon {
+  grid-row: auto; width: 48px; height: 48px; margin-bottom: 2px;
+  border-radius: 10px; background: var(--icon-bg); color: var(--icon-fg);
+}
+.reports-mode-grid .mode-card .mc-title { font-size: 24px; }
+.reports-mode-grid .mode-card .mc-desc { font-size: 12px; max-width: 440px; }
+.reports-mode-grid .mode-card:hover { border-color: var(--sky); }
+@media (max-width: 1000px) {
+  .reports-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .reports-mode-grid { grid-template-columns: 1fr; }
+  .reports-mode-grid .mode-card { min-height: 0; }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}Reports{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+<div class="mode-grid reports-mode-grid">
+  <a href="{{ url_for('reports_run', type='payroll_summary') }}" class="mode-card">
+    <div class="mc-icon">💵</div>
+    <div class="mc-title">Payroll Summary</div>
+    <div class="mc-desc">Full breakdown per employee for a given month.</div>
+  </a>
+  <a href="{{ url_for('reports_run', type='headcount') }}" class="mode-card">
+    <div class="mc-icon">👥</div>
+    <div class="mc-title">Headcount by Department</div>
+    <div class="mc-desc">Active employee count grouped by department.</div>
+  </a>
+  <a href="{{ url_for('reports_run', type='salary_register') }}" class="mode-card">
+    <div class="mc-icon">📋</div>
+    <div class="mc-title">Salary Register</div>
+    <div class="mc-desc">All employee salary components and totals.</div>
+  </a>
+</div>
+{% endblock %}

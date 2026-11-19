@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% block page_title %}Payroll Detail — {{ month }}{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('payroll_history') }}" class="btn btn-secondary btn-sm">Back</a>
+  <a href="{{ url_for('payroll_history_detail_export', month=month, fmt='xlsx') }}" class="btn btn-secondary btn-sm">Excel</a>
+  <a href="{{ url_for('payroll_history_detail_export', month=month, fmt='pdf') }}" class="btn btn-secondary btn-sm">PDF</a>
+  <button type="button" onclick="window.print()" class="btn btn-secondary btn-sm">Print</button>
+{% endblock %}
+{% block content %}
+<style>
+  /* Page-scoped refinements: reuse the shared application's theme variables. */
+  .payroll-detail-page {
+    --pd-line: var(--border, rgba(127, 127, 127, .2));
+    --pd-muted: var(--text2, #52677E);
+    --pd-panel: var(--card-bg, var(--surface, rgba(127, 127, 127, .045)));
+    --pd-green: var(--navy, #143256);
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+  }
+  .payroll-detail-page *,
+  .payroll-detail-page *::before,
+  .payroll-detail-page *::after { box-sizing: border-box; }
+
+  .pd-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .pd-summary-card {
+    min-width: 0;
+    padding: 16px 18px;
+    border: 1px solid var(--pd-line);
+    border-radius: 6px;
+    background: var(--pd-panel);
+  }
+  .pd-summary-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 9px;
+    color: var(--pd-muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+  }
+  .pd-summary-value {
+    display: block;
+    overflow-wrap: anywhere;
+    font-size: clamp(19px, 2vw, 25px);
+    line-height: 1.2;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+  .pd-summary-value.is-net { color: var(--pd-green); }
+  .pd-summary-footnote { margin: 7px 0 0; color: var(--pd-muted); font-size: 12px; }
+
+  .pd-table-card {
+    min-width: 0;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--pd-line);
+    border-radius: 6px;
+  }
+  .pd-table-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--pd-line);
+  }
+  .pd-table-heading h2 { margin: 0; font-size: 15px; font-weight: 700; }
+  .pd-table-heading p { margin: 5px 0 0; color: var(--pd-muted); font-size: 12px; }
+  .pd-count-pill {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--pd-line);
+    border-radius: 999px;
+    color: var(--pd-muted);
+    font-size: 12px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .payroll-detail-page .pd-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .payroll-detail-page table {
+    width: 100%;
+    min-width: 1550px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .payroll-detail-page thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 12px 13px;
+    border-bottom: 1px solid var(--pd-line);
+    background: var(--pd-panel);
+    color: var(--pd-muted);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .055em;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .payroll-detail-page td {
+    padding: 12px 13px;
+    border-bottom: 1px solid var(--pd-line);
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .payroll-detail-page tbody tr { transition: background-color .15s ease; }
+  .payroll-detail-page tbody tr:hover { background: var(--pd-panel); }
+  .payroll-detail-page tbody tr:last-child td { border-bottom: 0; }
+  .payroll-detail-page .num { text-align: right; }
+  .payroll-detail-page .pd-employee-id,
+  .payroll-detail-page .pd-meta { color: var(--pd-muted); font-size: 11px; }
+  .payroll-detail-page .pd-employee-name { font-weight: 650; }
+  .payroll-detail-page .pd-net-cell { color: var(--pd-green); font-weight: 750; }
+  .payroll-detail-page tfoot td {
+    padding: 14px 13px;
+    border-top: 1px solid var(--pd-line);
+    border-bottom: 0;
+    background: var(--pd-panel);
+    font-weight: 750;
+  }
+  .payroll-detail-page tfoot .pd-total-label { white-space: normal; min-width: 180px; }
+  .pd-empty-state {
+    padding: 44px 20px;
+    text-align: center;
+  }
+  .pd-empty-icon {
+    display: inline-grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    margin-bottom: 12px;
+    border: 1px solid var(--pd-line);
+    border-radius: 6px;
+    color: var(--pd-muted);
+    font-size: 19px;
+  }
+  .pd-empty-state h3 { margin: 0; font-size: 15px; }
+  .pd-empty-state p { margin: 6px 0 0; color: var(--pd-muted); font-size: 13px; }
+  .pd-scroll-hint { display: none; padding: 9px 14px; border-top: 1px solid var(--pd-line); color: var(--pd-muted); font-size: 11px; }
+
+  @media (max-width: 1000px) {
+    .pd-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 600px) {
+    .payroll-detail-page { gap: 12px; }
+    .pd-summary-grid { gap: 8px; }
+    .pd-summary-card { padding: 13px; border-radius: 6px; }
+    .pd-summary-label { gap: 5px; font-size: 10px; }
+    .pd-summary-value { font-size: 19px; }
+    .pd-table-heading { align-items: flex-start; padding: 14px; }
+    .pd-table-heading h2 { font-size: 14px; }
+    .pd-count-pill { font-size: 10px; }
+    .pd-scroll-hint { display: block; }
+  }
+  @media print {
+    .payroll-detail-page { gap: 10px; }
+    .pd-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .pd-summary-card { padding: 8px 10px; border-radius: 6px; }
+    .pd-summary-label { margin-bottom: 4px; font-size: 8px; }
+    .pd-summary-value { font-size: 13px; }
+    .pd-summary-footnote, .pd-scroll-hint { display: none !important; }
+    .pd-table-card { overflow: visible; border-radius: 0; }
+    .pd-table-heading { padding: 8px 10px; }
+    .payroll-detail-page .pd-table-wrap { overflow: visible; }
+    .payroll-detail-page table { min-width: 0; width: 100%; font-size: 7px; }
+    .payroll-detail-page thead th,
+    .payroll-detail-page td,
+    .payroll-detail-page tfoot td { padding: 5px 4px; white-space: normal; }
+    .payroll-detail-page thead th { position: static; font-size: 6px; }
+    .payroll-detail-page tbody tr { break-inside: avoid; }
+    .payroll-detail-page { color: #111 !important; }
+  }
+
+  /* Icons: same outline style as the dashboard */
+  .payroll-detail-page .ic { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+  .payroll-detail-page .pd-ic { display:inline-flex; color:var(--navy, #143256); }
+  .payroll-detail-page .pd-empty-icon .ic { width:22px; height:22px; }
+  [data-theme="dark"] .payroll-detail-page .pd-ic { color:var(--sky, #59CBE8); }
+  [data-theme="dark"] .payroll-detail-page .pd-summary-value.is-net, [data-theme="dark"] .payroll-detail-page .pd-net-cell { color:var(--sky, #59CBE8); }
+</style>
+
+<div class="payroll-detail-page">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="pm-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="pm-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="pm-minus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></symbol>
+  <symbol id="pm-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="pm-file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+</svg>
+  <section class="pd-summary-grid" aria-label="Payroll summary">
+    <div class="pd-summary-card">
+      <p class="pd-summary-label"><span class="pd-ic" aria-hidden="true"><svg class="ic"><use href="#pm-users"/></svg></span> Employees</p>
+      <strong class="pd-summary-value">{{ detail|length }}</strong>
+      <p class="pd-summary-footnote">Included in this payroll run</p>
+    </div>
+    <div class="pd-summary-card">
+      <p class="pd-summary-label"><span class="pd-ic" aria-hidden="true"><svg class="ic"><use href="#pm-wallet"/></svg></span> Gross payroll</p>
+      <strong class="pd-summary-value" data-val="{{ totals.gross }}"></strong>
+      <p class="pd-summary-footnote">Before deductions</p>
+    </div>
+    <div class="pd-summary-card">
+      <p class="pd-summary-label"><span class="pd-ic" aria-hidden="true"><svg class="ic"><use href="#pm-minus"/></svg></span> Total deductions</p>
+      <strong class="pd-summary-value" data-val="{{ totals.total_ded }}"></strong>
+      <p class="pd-summary-footnote">Across recorded payroll deductions</p>
+    </div>
+    <div class="pd-summary-card">
+      <p class="pd-summary-label"><span class="pd-ic" aria-hidden="true"><svg class="ic"><use href="#pm-check"/></svg></span> Net payroll</p>
+      <strong class="pd-summary-value is-net" data-val="{{ totals.net }}"></strong>
+      <p class="pd-summary-footnote">After deductions</p>
+    </div>
+  </section>
+
+  <section class="card pd-table-card" aria-label="Detailed payroll records">
+    <header class="pd-table-heading">
+      <div>
+        <h2>Employee payroll breakdown</h2>
+        <p>Detailed salary, deduction, attendance and run information for {{ month }}.</p>
+      </div>
+      <span class="pd-count-pill"><span class="pd-ic" aria-hidden="true"><svg class="ic"><use href="#pm-file"/></svg></span> {{ detail|length }} records</span>
+    </header>
+
+    {% if detail %}
+    <div class="pd-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Name</th><th>Dept</th>
+            <th class="num">Gross</th><th class="num">SI</th><th class="num">Tax</th>
+            <th class="num">Absent</th><th class="num">Late</th><th class="num">Sick</th>
+            <th class="num">Sanctions</th><th class="num">Other Ded</th><th class="num">Loan</th>
+            <th class="num">Total Ded</th><th class="num">Net</th>
+            <th class="num">A.Days</th><th class="num">Late Min</th>
+            <th class="num">Day Rate</th><th>Updated By</th><th>Run Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detail %}
+          <tr>
+            <td class="pd-employee-id">{{ d.emp_id or d.eid }}</td>
+            <td class="pd-employee-name">{{ d.name }}</td>
+            <td class="pd-meta">{{ d.dept or '—' }}</td>
+            <td class="num" data-val="{{ d.gross }}"></td>
+            <td class="num" data-val="{{ d.si }}"></td>
+            <td class="num" data-val="{{ d.tax }}"></td>
+            <td class="num" data-val="{{ d.absences }}"></td>
+            <td class="num" data-val="{{ d.lateness }}"></td>
+            <td class="num" data-val="{{ d.sick }}"></td>
+            <td class="num" data-val="{{ d.sanctions }}"></td>
+            <td class="num" data-val="{{ d.other_ded }}"></td>
+            <td class="num" data-val="{{ d.loan }}"></td>
+            <td class="num" data-val="{{ d.total_ded }}"></td>
+            <td class="num pd-net-cell" data-val="{{ d.net }}"></td>
+            <td class="num">{{ d.absent_days }}</td>
+            <td class="num">{{ d.late_minutes }}</td>
+            <td class="num" data-val="{{ d.day_rate }}"></td>
+            <td class="pd-meta">{{ d.updated_by or '—' }}</td>
+            <td class="pd-meta">{{ d.run_date or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="pd-total-label">Totals ({{ detail|length }} employees)</td>
+            <td class="num" data-val="{{ totals.gross }}"></td>
+            <td class="num" data-val="{{ totals.si }}"></td>
+            <td class="num" data-val="{{ totals.tax }}"></td>
+            <td colspan="5" aria-label="No totals supplied for attendance and other deduction breakdowns"></td>
+            <td class="num" data-val="{{ totals.loan }}"></td>
+            <td class="num" data-val="{{ totals.total_ded }}"></td>
+            <td class="num pd-net-cell" data-val="{{ totals.net }}"></td>
+            <td colspan="5"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="pd-scroll-hint">Scroll horizontally to view all payroll columns.</div>
+    {% else %}
+    <div class="pd-empty-state">
+      <span class="pd-empty-icon" aria-hidden="true"><svg class="ic"><use href="#pm-file"/></svg></span>
+      <h3>No payroll records found</h3>
+      <p>There are no employee details recorded for {{ month }}.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

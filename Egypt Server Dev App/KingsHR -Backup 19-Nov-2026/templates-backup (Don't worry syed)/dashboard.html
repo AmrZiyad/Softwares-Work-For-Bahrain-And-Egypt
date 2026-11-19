@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-value">{{ emp_count }}</div>
+    <div class="stat-label">👥 Active Employees</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ payroll_run }}</div>
+    <div class="stat-label">💵 Paid This Month ({{ this_month }})</div>
+  </div>
+</div>
+
+<div class="mode-grid">
+  {% if session.role in ('Admin','HR') %}
+  <a href="{{ url_for('employees') }}" class="mode-card">
+    <div class="mc-icon">👥</div>
+    <div class="mc-title">Employee Information</div>
+    <div class="mc-desc">View, add, and manage employee records.</div>
+  </a>
+  <a href="{{ url_for('payroll_menu') }}" class="mode-card">
+    <div class="mc-icon">💵</div>
+    <div class="mc-title">Payroll</div>
+    <div class="mc-desc">Run monthly payroll, manual entry, history & rollback.</div>
+  </a>
+  <a href="{{ url_for('reports_menu') }}" class="mode-card">
+    <div class="mc-icon">📊</div>
+    <div class="mc-title">Reports</div>
+    <div class="mc-desc">Payroll summary, headcount, salary register.</div>
+  </a>
+  {% endif %}
+  {% if session.role == 'Admin' %}
+  <a href="{{ url_for('user_manager') }}" class="mode-card">
+    <div class="mc-icon">⚙️</div>
+    <div class="mc-title">User Manager</div>
+    <div class="mc-desc">Add or manage system users and roles.</div>
+  </a>
+  <a href="{{ url_for('payroll_settings') }}" class="mode-card">
+    <div class="mc-icon">🔧</div>
+    <div class="mc-title">Payroll Settings</div>
+    <div class="mc-desc">SI caps, tax brackets, day/hour divisors.</div>
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

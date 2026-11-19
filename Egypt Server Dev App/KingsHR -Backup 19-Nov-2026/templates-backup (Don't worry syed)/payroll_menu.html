@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block page_title %}Payroll{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+<div class="mode-grid">
+  <a href="{{ url_for('payroll_manual') }}" class="mode-card">
+    <div class="mc-icon">✏️</div>
+    <div class="mc-title">Manual Entry Payroll</div>
+    <div class="mc-desc">Pick an employee, enter days, calculate and save their payroll.</div>
+  </a>
+  <a href="{{ url_for('payroll_run_all') }}" class="mode-card">
+    <div class="mc-icon">▶️</div>
+    <div class="mc-title">Run Monthly Payroll</div>
+    <div class="mc-desc">Run payroll for ALL active employees from attendance data in one click.</div>
+  </a>
+  <a href="{{ url_for('payroll_history') }}" class="mode-card">
+    <div class="mc-icon">🕐</div>
+    <div class="mc-title">Payroll History</div>
+    <div class="mc-desc">View all previous payroll months, review and export results.</div>
+  </a>
+  <a href="{{ url_for('payroll_rollback') }}" class="mode-card">
+    <div class="mc-icon">↩️</div>
+    <div class="mc-title">Rollback Month Payroll</div>
+    <div class="mc-desc">Delete ALL payroll entries for a month and start fresh.</div>
+  </a>
+  <a href="{{ url_for('payroll_settings') }}" class="mode-card">
+    <div class="mc-icon">⚙️</div>
+    <div class="mc-title">Payroll Settings</div>
+    <div class="mc-desc">Personal exemption, SI cap, tax brackets, shift times.</div>
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block page_title %}Bulk Upload Employees{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('employees') }}" class="btn btn-secondary btn-sm">‹ Back to Employees</a>
+{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-title">📤 Bulk Employee Upload (CSV)</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">
+    Upload a CSV file with employee data. The first row must be a header row.
+    Columns can be in any order. Only rows with at least a First Name or Family Name will be imported.
+  </p>
+
+  <div class="alert alert-info">
+    ℹ️ <strong>Required CSV columns:</strong>
+    EmployeeID, FirstName, FamilyName, Department, JobTitle, BasicSalary,
+    HousingAllowance, TransportAllowance, OtherFixedAllowances,
+    PersonalEmail, WorkSchedule, DateOfJoining, DateOfBirth,
+    EmploymentStatus, NationalID, Phone, Gender, Nationality
+  </div>
+  <div class="alert alert-info" style="margin-top:8px;">
+    📅 <strong>Date format:</strong> Use <strong>dd/mm/yyyy</strong> for all date columns
+    (e.g. <code>15/08/2022</code>). The system also accepts <code>dd-mm-yyyy</code> or <code>yyyy-mm-dd</code>.
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" style="margin-bottom:20px;">
+    <div class="form-row" style="align-items:flex-end;">
+      <div class="form-group" style="flex:1;">
+        <label>CSV File <span style="color:var(--accent)">*</span></label>
+        <input type="file" name="csv_file" accept=".csv" required>
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary">📤 Upload & Import</button>
+      </div>
+    </div>
+  </form>
+
+  <div style="margin-bottom:16px;">
+    <a href="{{ url_for('static', filename='employee_template.csv') }}"
+       class="btn btn-secondary btn-sm"
+       onclick="if(!confirm('Download the CSV template?')) return false;">
+      ⬇️ Download Template
+    </a>
+  </div>
+</div>
+
+{% if results %}
+<div class="card" style="padding:0;overflow:hidden;">
+  <div style="padding:16px 20px 0;"><div class="card-title">Import Results</div></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Row</th><th>Name</th><th>Status</th><th>Message</th></tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.row }}</td>
+          <td>{{ r.name }}</td>
+          <td>
+            {% if r.status == 'ok' %}
+              <span class="badge badge-green">✅ Added</span>
+            {% else %}
+              <span class="badge badge-red">❌ Error</span>
+            {% endif %}
+          </td>
+          <td style="color:{% if r.status=='error' %}var(--error){% else %}var(--text2){% endif %};max-width:400px;white-space:normal;">
+            {{ r.msg or '—' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

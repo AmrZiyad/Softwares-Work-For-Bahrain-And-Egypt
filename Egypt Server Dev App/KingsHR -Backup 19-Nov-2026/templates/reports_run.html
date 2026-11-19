@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+.report-page { display: grid; gap: 22px; }
+.report-filter-card { max-width: 800px; }
+.report-filter-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.report-filter-row .form-group { margin: 0; min-width: 180px; }
+.report-filter-row .form-group input,
+.report-filter-row .form-group select { min-height: 42px; }
+.report-filter-row .btn-primary { min-height: 42px; }
+
+/* Results card */
+.report-results-card { padding: 0; overflow: hidden; }
+.rrc-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+.rrc-head strong {
+  font-family: var(--font-head, 'Cormorant Garamond', Georgia, serif);
+  font-size: 22px; color: var(--heading);
+}
+.rrc-head-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rrc-pill {
+  display: inline-flex; align-items: center; padding: 5px 11px;
+  border: 1px solid var(--border); border-radius: 99px;
+  color: var(--text2); font-size: 11px; font-weight: 700;
+  white-space: nowrap;
+}
+.report-results-card .report-results-card-inner .table-wrap { max-height: 68vh; overflow: auto; }
+.report-results-card table { width: 100%; min-width: 600px; }
+.report-results-card thead th { white-space: nowrap; }
+.report-results-card td.num,
+.report-results-card th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.report-results-card td:first-child,
+.report-results-card th:first-child { white-space: normal; }
+.report-empty {
+  padding: 52px 20px; text-align: center;
+  color: var(--text2); font-size: 13px;
+}
+
+/* Summary strip */
+.rpt-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.rpt-stat {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 6px);
+  background: var(--card);
+}
+.rpt-stat-label {
+  font-size: 10.5px; font-weight: 750; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text2); margin: 0 0 6px;
+}
+.rpt-stat-value {
+  font-size: 22px; font-weight: 750; color: var(--stat, #143256);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+[data-theme="dark"] .rpt-stat-value { color: var(--sky, #59CBE8); }
+
+@media (max-width: 640px) {
+  .report-filter-card { max-width: none; }
+  .rrc-head { align-items: flex-start; }
+  .rrc-head strong { font-size: 18px; }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}{{ page_title or 'Report' }}{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('reports_menu') }}" class="btn btn-secondary btn-sm">Back</a>
+  {% if data %}
+  <button onclick="exportCSV()" class="btn btn-secondary btn-sm">Export CSV</button>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="report-page">
+
+  <!-- ── Filter card ── -->
+  <div class="card report-filter-card">
+    <form method="POST">
+      <div class="report-filter-row">
+
+        {% if report_type in ('payroll_summary','tax_report','deductions_report','salary_cost_dept') %}
+        <div class="form-group">
+          <label>Payroll Month</label>
+          <input type="month" name="month" value="{{ month or '' }}" required>
+        </div>
+        {% endif %}
+
+        {% if report_type == 'ytd_payroll' %}
+        <div class="form-group">
+          <label>Year</label>
+          <input type="number" name="year" value="{{ year or '' }}" min="2020" max="2099" placeholder="e.g. 2025" required style="width:130px;">
+        </div>
+        {% endif %}
+
+        {% if report_type == 'employee_directory' %}
+        <div class="form-group">
+          <label>Department (optional)</label>
+          <select name="dept">
+            <option value="">All Departments</option>
+            {% for d in departments or [] %}
+            <option value="{{ d }}" {% if d == dept %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">Run Report</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Summary strip (when data present) ── -->
+  {% if summary_stats %}
+  <div class="rpt-summary-strip">
+    {% for s in summary_stats %}
+    <div class="rpt-stat">
+      <div class="rpt-stat-label">{{ s.label }}</div>
+      <div class="rpt-stat-value" {% if s.is_money %}data-val="{{ s.value }}"{% endif %}>
+        {% if not s.is_money %}{{ s.value }}{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Results table ── -->
+  {% if title %}
+  <div class="card report-results-card">
+    <div class="rrc-head">
+      <strong>{{ title }}</strong>
+      <div class="rrc-head-right">
+        <span class="rrc-pill">{{ data|length }} rows</span>
+      </div>
+    </div>
+    <div class="report-results-card-inner">
+      <div class="table-wrap">
+        <table id="reportTable">
+          <thead>
+            <tr>
+              {% for c in cols %}
+              <th {% if loop.index0 >= num_text_cols %}class="num"{% endif %}>{{ c }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in data %}
+            <tr>
+              {% for cell in row %}
+              {% if loop.index0 < num_text_cols %}
+              <td>{{ cell or '—' }}</td>
+              {% else %}
+              <td class="num" data-val="{{ cell }}"></td>
+              {% endif %}
+              {% endfor %}
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="{{ cols|length }}" class="report-empty">No data found for this period.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          {% if footer_row %}
+          <tfoot>
+            <tr>
+              {% for cell in footer_row %}
+              {% if loop.index0 < num_text_cols %}
+              <td><strong>{{ cell }}</strong></td>
+              {% else %}
+              <td class="num"><strong data-val="{{ cell }}"></strong></td>
+              {% endif %}
+              {% endfor %}
+            </tr>
+          </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Format all [data-val] elements as EGP numbers
+(function(){
+  function fmt(n){
+    var v = parseFloat(n);
+    if(isNaN(v)) return n;
+    return v.toLocaleString('en-EG', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  document.querySelectorAll('[data-val]').forEach(function(el){
+    el.textContent = fmt(el.getAttribute('data-val'));
+  });
+})();
+
+function exportCSV() {
+  const table = document.getElementById('reportTable');
+  if (!table) return;
+  const rows = [...table.querySelectorAll('tr')].map(r =>
+    [...r.querySelectorAll('th,td')].map(c => '"' + c.textContent.trim().replace(/"/g,'""') + '"').join(',')
+  );
+  const blob = new Blob([rows.join('\n')], {type: 'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = ('{{ title or "report" }}').replace(/\s+/g,'_').replace(/[—–]/g,'') + '.csv';
+  a.click();
+}
+</script>
+{% endblock %}

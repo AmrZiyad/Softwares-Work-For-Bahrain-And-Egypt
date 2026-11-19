@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.rpt-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  gap: 0;
+  padding: 32px 24px 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 6px);
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color .18s, box-shadow .18s;
+  cursor: pointer;
+}
+.rpt-card:hover {
+  border-color: var(--sky, #59CBE8);
+  box-shadow: 0 4px 18px rgba(89,203,232,.13);
+  text-decoration: none;
+}
+.rpt-card.coming-soon {
+  opacity: .55;
+  cursor: default;
+  pointer-events: none;
+}
+.rpt-icon {
+  width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  background: var(--icon-bg, #143256);
+  color: var(--icon-fg, #fff);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.rpt-icon .ic {
+  width: 26px; height: 26px;
+  display: block; fill: none;
+  stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.rpt-title {
+  font-family: var(--font-head, 'Cormorant Garamond', Georgia, serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--heading, #143256);
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+.rpt-desc {
+  font-size: 12px;
+  color: var(--text2, #5B6B7F);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 260px;
+}
+.rpt-badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--row-hover, rgba(89,203,232,.12));
+  color: var(--text2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+@media (max-width: 1000px) {
+  .reports-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 580px) {
+  .reports-grid { grid-template-columns: 1fr; gap: 12px; }
+  .rpt-card { padding: 22px 18px; flex-direction: row; text-align: left; align-items: flex-start; gap: 16px; }
+  .rpt-icon { margin-bottom: 0; flex-shrink: 0; }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}Reports{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="rpt-users"    viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="rpt-wallet"   viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="rpt-tax"      viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h3"/><path d="M9 9h1"/></symbol>
+  <symbol id="rpt-minus"    viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 10h10"/><path d="M7 7h3"/></symbol>
+  <symbol id="rpt-building"  viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M3 9h6"/><path d="M3 15h6"/><path d="M13 8h4"/><path d="M13 12h4"/><path d="M13 16h4"/></symbol>
+  <symbol id="rpt-palm"     viewBox="0 0 24 24"><path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/></symbol>
+  <symbol id="rpt-dept"     viewBox="0 0 24 24"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/><rect x="3" y="3" width="18" height="18" rx="2"/></symbol>
+  <symbol id="rpt-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+</svg>
+
+<div class="reports-grid">
+
+  <a href="{{ url_for('reports_run', type='employee_directory') }}" class="rpt-card">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-users"/></svg></div>
+    <div>
+      <div class="rpt-title">Employee Directory</div>
+      <p class="rpt-desc">Full list of all active employees with contact &amp; department info.</p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports_run', type='payroll_summary') }}" class="rpt-card">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-wallet"/></svg></div>
+    <div>
+      <div class="rpt-title">Payroll Summary by Month</div>
+      <p class="rpt-desc">Gross, deductions &amp; net per employee for a selected month.</p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports_run', type='tax_report') }}" class="rpt-card">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-tax"/></svg></div>
+    <div>
+      <div class="rpt-title">Tax Report</div>
+      <p class="rpt-desc">Income tax and social insurance per employee per month.</p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports_run', type='deductions_report') }}" class="rpt-card">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-minus"/></svg></div>
+    <div>
+      <div class="rpt-title">Deductions Report</div>
+      <p class="rpt-desc">Breakdown of all deduction types for a selected month.</p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports_run', type='headcount') }}" class="rpt-card">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-building"/></svg></div>
+    <div>
+      <div class="rpt-title">Headcount by Department</div>
+      <p class="rpt-desc">Number of employees per department with salary totals.</p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports_run', type='leave_balances') }}" class="rpt-card coming-soon">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-palm"/></svg></div>
+    <div>
+      <div class="rpt-title">Leave Balances</div>
+      <p class="rpt-desc">Current annual leave balances for all active employees.</p>
+      <span class="rpt-badge">Coming Soon</span>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports_run', type='salary_cost_dept') }}" class="rpt-card">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-dept"/></svg></div>
+    <div>
+      <div class="rpt-title">Salary Cost by Department</div>
+      <p class="rpt-desc">Total gross &amp; net cost per department for a selected month.</p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports_run', type='ytd_payroll') }}" class="rpt-card">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-calendar"/></svg></div>
+    <div>
+      <div class="rpt-title">Year-to-Date Payroll</div>
+      <p class="rpt-desc">Cumulative payroll totals per employee for the current year.</p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports_run', type='salary_register') }}" class="rpt-card">
+    <div class="rpt-icon"><svg class="ic"><use href="#rpt-tax"/></svg></div>
+    <div>
+      <div class="rpt-title">Salary Register</div>
+      <p class="rpt-desc">All employee salary components and totals.</p>
+    </div>
+  </a>
+
+</div>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block page_title %}Rollback Month Payroll{% endblock %}
+{% block extra_head %}
+<style>
+  /* Payroll rollback — visual-only updates; the POST workflow and confirmation remain unchanged. */
+  .rollback-page {
+    --rb-red: var(--red, #DC001E);
+    --rb-red-soft: rgba(237, 27, 53, .075);
+    --rb-red-border: rgba(237, 27, 53, .24);
+    --rb-line: var(--border, #dce5ed);
+    --rb-muted: var(--text2, #5B6B7F);
+    --rb-surface: var(--card, #fff);
+    color: var(--text, #1B2A3C);
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+  }
+  .rollback-page,
+  .rollback-page * { box-sizing: border-box; }
+
+  [data-theme="dark"] .rollback-page {
+    --rb-red: #FF687C;
+    --rb-red-soft: rgba(255, 104, 124, .10);
+    --rb-red-border: rgba(255, 104, 124, .32);
+  }
+  [data-theme="dark"] .rb-actions .rb-submit {
+    --rb-red: #DC001E;
+  }
+
+  .rb-intro {
+    padding: 2px 0 15px;
+    border-bottom: 1px solid var(--rb-line);
+  }
+  .rb-eyebrow {
+    display: inline-block;
+    margin: 0 0 7px;
+    color: var(--rb-muted);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .rb-intro h2 {
+    margin: 0;
+    color: var(--heading, #143256);
+    font-family: var(--font-head, Georgia), Georgia, 'Times New Roman', serif;
+    font-size: clamp(22px, 2vw, 28px);
+    font-weight: 500;
+    line-height: 1.25;
+  }
+  .rb-intro h2::after {
+    content: '';
+    display: block;
+    width: 34px;
+    height: 3px;
+    margin-top: 12px;
+    border-radius: 4px;
+    background: var(--sky, #59CBE8);
+  }
+  .rb-intro p {
+    max-width: 690px;
+    margin: 10px 0 0;
+    color: var(--rb-muted);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .rb-card {
+    width: min(100%, 680px);
+    padding: clamp(17px, 3vw, 25px);
+    border: 1px solid var(--rb-line);
+    border-radius: 8px;
+    background: var(--rb-surface);
+    box-shadow: 0 1px 3px var(--shadow, rgba(20, 48, 73, .055));
+  }
+  .rb-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin: 0 0 18px;
+  }
+  .rb-warning-icon {
+    display: grid;
+    width: 43px;
+    height: 43px;
+    flex: 0 0 43px;
+    place-items: center;
+    border: 1px solid var(--rb-red-border);
+    border-radius: 10px;
+    background: var(--rb-red-soft);
+    color: var(--rb-red);
+    font-size: 21px;
+    font-weight: 800;
+  }
+  .rb-card-heading h3 {
+    margin: 0 0 4px;
+    color: var(--heading, #143256);
+    font-family: var(--font-head, Georgia), Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .rb-card-heading p {
+    margin: 0;
+    color: var(--rb-muted);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .rb-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 22px;
+    padding: 14px 15px;
+    border: 1px solid var(--rb-red-border);
+    border-left: 3px solid var(--rb-red);
+    border-radius: 6px;
+    background: var(--rb-red-soft);
+    color: var(--text, #1B2A3C);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  .rb-alert-icon { color: var(--rb-red); font-size: 16px; line-height: 1.4; }
+  .rb-alert strong { color: var(--rb-red); }
+
+  .rb-field { margin: 0; }
+  .rb-field label {
+    display: block;
+    margin: 0 0 8px;
+    color: var(--text2, #5B6B7F);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+  }
+  .rb-field select {
+    display: block;
+    width: 100%;
+    min-height: 43px;
+    padding: 9px 12px;
+    border: 1px solid var(--rb-line);
+    border-radius: 6px;
+    background: var(--rb-surface);
+    color: var(--input-fg, var(--text, #1B2A3C));
+    font: inherit;
+    font-size: 13px;
+    transition: border-color .16s ease, box-shadow .16s ease;
+  }
+  .rb-field select:focus-visible {
+    outline: none;
+    border-color: var(--rb-red);
+    box-shadow: 0 0 0 3px rgba(237, 27, 53, .12);
+  }
+  .rb-help {
+    margin: 8px 0 0;
+    color: var(--rb-muted);
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  .rb-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rb-line);
+  }
+  .rb-actions .btn {
+    min-height: 39px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 6px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .rb-actions .rb-submit {
+    border: 1px solid var(--rb-red);
+    background: var(--rb-red);
+    color: #fff;
+  }
+  .rb-actions .rb-submit:hover,
+  .rb-actions .rb-submit:focus-visible {
+    border-color: #c8102e;
+    background: #c8102e;
+  }
+  .rb-actions .rb-submit:focus-visible,
+  .rb-actions .rb-cancel:focus-visible {
+    outline: 2px solid var(--rb-red);
+    outline-offset: 2px;
+  }
+  .rb-actions .rb-cancel { margin-left: 0 !important; }
+
+  @media (max-width: 600px) {
+    .rollback-page { gap: 14px; }
+    .rb-intro { padding-bottom: 12px; }
+    .rb-card { border-radius: 7px; }
+    .rb-card-heading { align-items: flex-start; }
+    .rb-actions { align-items: stretch; }
+    .rb-actions .btn { flex: 1 1 140px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rb-field select { transition: none; }
+  }
+</style>
+{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('payroll_menu') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+<div class="rollback-page">
+  <header class="rb-intro">
+    <span class="rb-eyebrow">Kings School Egypt · HR &amp; Payroll</span>
+    <h2>Rollback Month Payroll</h2>
+    <p>Remove payroll entries for a selected month only when you need to start that payroll run again. Please check the month carefully before continuing.</p>
+  </header>
+
+  <section class="rb-card" aria-labelledby="rollbackCardTitle">
+    <div class="rb-card-heading">
+      <span class="rb-warning-icon" aria-hidden="true">!</span>
+      <div>
+        <h3 id="rollbackCardTitle">Rollback Payroll Month</h3>
+        <p>Select the payroll period you need to remove.</p>
+      </div>
+    </div>
+
+    <div class="rb-alert" role="alert">
+      <span class="rb-alert-icon" aria-hidden="true">⚠</span>
+      <div>This action will <strong>permanently delete all payroll entries</strong> for the selected month. This cannot be undone.</div>
+    </div>
+
+    <form method="POST" onsubmit="return confirm('DELETE ALL payroll for ' + document.querySelector('[name=month]').value + '? This CANNOT be undone!')">
+      <div class="rb-field">
+        <label for="rollbackMonth">Select Month to Rollback</label>
+        <select id="rollbackMonth" name="month" required>
+          <option value="">— Choose month —</option>
+          {% for m in month_list %}
+          <option value="{{ m }}">{{ m }}</option>
+          {% endfor %}
+        </select>
+        <p class="rb-help">Only the payroll entries belonging to the selected month will be targeted.</p>
+      </div>
+
+      <div class="rb-actions">
+        <button type="submit" class="btn btn-danger rb-submit">↩ Rollback Payroll</button>
+        <a href="{{ url_for('payroll_menu') }}" class="btn btn-secondary rb-cancel">Cancel</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

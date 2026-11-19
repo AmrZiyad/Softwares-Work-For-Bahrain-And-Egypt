@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payroll Detail — {{ month }}</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10px; color: #1f2937; margin: 20px; }
+  h1 { font-size: 15px; color: #4f46e5; margin-bottom: 4px; }
+  .meta { font-size: 9px; color: #6b7280; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #4f46e5; color: #fff; padding: 5px 6px; text-align: left; font-size: 9px; }
+  th.num, td.num { text-align: right; }
+  td { padding: 4px 6px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  tfoot td { background: #f3f4f6; font-weight: bold; border-top: 2px solid #4f46e5; }
+</style>
+</head>
+<body>
+<h1>Payroll Detail — {{ month }}</h1>
+<div class="meta">Generated: {{ generated }}</div>
+<table>
+  <thead>
+    <tr>
+      <th>Emp ID</th><th>Name</th><th>Dept</th><th>Job</th>
+      <th class="num">Gross</th><th class="num">SI</th><th class="num">Tax</th>
+      <th class="num">Loan</th><th class="num">Absent</th><th class="num">Late</th>
+      <th class="num">Sick</th><th class="num">Sanctions</th><th class="num">Other</th>
+      <th class="num">Total Ded</th><th class="num">Net</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in detail %}
+    <tr>
+      <td>{{ d.emp_id or '—' }}</td>
+      <td>{{ d.name }}</td>
+      <td>{{ d.dept or '—' }}</td>
+      <td>{{ d.job or '—' }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.gross or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.si or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.tax or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.loan or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.absences or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.lateness or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.sick or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.sanctions or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.other_ded or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.total_ded or 0) }}</td>
+      <td class="num"><strong>{{ "{:,.2f}".format(d.net or 0) }}</strong></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4">TOTAL</td>
+      <td class="num">{{ "{:,.2f}".format(totals.gross) }}</td>
+      <td class="num">{{ "{:,.2f}".format(totals.si) }}</td>
+      <td class="num">{{ "{:,.2f}".format(totals.tax) }}</td>
+      <td class="num">{{ "{:,.2f}".format(totals.loan) }}</td>
+      <td class="num" colspan="5"></td>
+      <td class="num">{{ "{:,.2f}".format(totals.total_ded) }}</td>
+      <td class="num">{{ "{:,.2f}".format(totals.net) }}</td>
+    </tr>
+  </tfoot>
+</table>
+</body>
+</html>

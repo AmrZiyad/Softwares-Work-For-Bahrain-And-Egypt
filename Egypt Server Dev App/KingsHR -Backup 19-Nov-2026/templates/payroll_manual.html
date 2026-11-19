@@ -1,0 +1,2139 @@
+{% extends "base.html" %}
+{% block page_title %}Manual Payroll Entry{% endblock %}
+{% block extra_head %}
+<style>
+/* ── Layout ──────────────────────────────────────────────── */
+.pay-wrap {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .pay-wrap { grid-template-columns: 1fr; }
+}
+
+/* ── Employee banner ─────────────────────────────────────── */
+#empBanner {
+  display: none;
+  background: var(--accent2, #59CBE8);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+#empBanner.visible { display: flex; }
+#empBanner .emp-name { font-size: 17px; font-weight: 700; }
+#empBanner .emp-meta { opacity: .8; font-size: 12px; margin-left: auto; }
+
+/* ── Deductions table ────────────────────────────────────── */
+.ded-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.ded-table th {
+  background: var(--bg2, #F2F9FC);
+  color: var(--text2, #52677E);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 7px 10px;
+  text-align: left;
+}
+.ded-table th:last-child { text-align: right; }
+.ded-table td { padding: 6px 10px; vertical-align: middle; border-bottom: 1px solid var(--border, #D9E0E7); }
+.ded-table td:last-child { text-align: right; font-weight: 600; color: var(--accent, #DC001E); white-space: nowrap; }
+.ded-table tr:last-child td { border-bottom: none; }
+.ded-table input[type=number] {
+  width: 110px;
+  padding: 5px 8px;
+  border: 1px solid var(--border, #D9E0E7);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--card, #fff);
+  color: var(--text1, #143256);
+  text-align: right;
+}
+.ded-table input[type=number]:focus {
+  outline: none;
+  border-color: var(--accent2, #59CBE8);
+  box-shadow: 0 0 0 2px rgba(89, 203, 232,.15);
+}
+.ded-table .unit-hint { font-size: 11px; color: var(--text2); margin-left: 4px; }
+.total-ded-row td {
+  background: rgba(220, 0, 30,.08) !important;
+  border-top: 2px solid var(--accent, #DC001E) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--accent, #DC001E) !important;
+  padding: 10px !important;
+}
+
+/* ── Right panel (payslip) ───────────────────────────────── */
+.payslip-panel { position: sticky; top: 0; }
+.payslip-panel .card-title { font-size: 16px; }
+
+.ps-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text2, #52677E);
+  padding: 10px 0 4px;
+  border-bottom: 1px solid var(--border, #D9E0E7);
+  margin-bottom: 4px;
+}
+.ps-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.ps-row .ps-label { color: var(--text2, #52677E); }
+.ps-row .ps-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ps-row.ps-indent .ps-label { padding-left: 10px; font-size: 12px; }
+.ps-row.ps-indent .ps-val { font-size: 12px; font-weight: 500; }
+.ps-divider { border: none; border-top: 1px dashed var(--border, #D9E0E7); margin: 6px 0; }
+
+.ps-total-ded {
+  background: rgba(220, 0, 30,.08);
+  border: 1px solid rgba(220, 0, 30,.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+.ps-total-ded .label { font-size: 13px; font-weight: 600; color: var(--accent, #DC001E); }
+.ps-total-ded .value { font-size: 18px; font-weight: 800; color: var(--accent, #DC001E); }
+
+.ps-net {
+  background: var(--navy, #143256);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 14px;
+  color: #fff;
+}
+.ps-net .label { font-size: 13px; font-weight: 600; opacity: .9; }
+.ps-net .value { font-size: 22px; font-weight: 800; }
+
+.ps-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text2, #71869A);
+}
+.ps-placeholder .ico { font-size: 40px; margin-bottom: 12px; }
+
+/* ── Export buttons ──────────────────────────────────────── */
+.export-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.export-btns .btn { font-size: 12px; padding: 6px 12px; }
+
+/* ── History table ───────────────────────────────────────── */
+.hist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.hist-table th {
+  background: var(--bg2, #F2F9FC);
+  color: var(--text2, #52677E);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 8px 10px;
+  text-align: right;
+}
+.hist-table th:first-child, .hist-table th:nth-child(2) { text-align: left; }
+.hist-table td { padding: 8px 10px; border-bottom: 1px solid var(--border, #D9E0E7); text-align: right; }
+.hist-table td:first-child, .hist-table td:nth-child(2) { text-align: left; }
+.hist-table tr:hover td { background: var(--bg2, #F2F9FC); }
+.hist-table .net-col { font-weight: 700; color: var(--accent2, #59CBE8); }
+.hist-table .ded-col { color: var(--accent, #DC001E); }
+
+.num-right { text-align: right; }
+
+
+/* ── Manual Payroll visual alignment ──────────────────────── */
+.manual-payroll-page {
+  /* Bridge legacy page styles to the shared Kings School theme tokens. */
+  --payroll-navy: var(--navy);
+  --payroll-red: var(--heading);
+  --accent: var(--heading);
+  --accent2: var(--stat);
+  --bg2: var(--th-bg);
+  --text1: var(--text);
+  color: var(--text);
+}
+.manual-payroll-page .pay-wrap {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 344px);
+  gap: 18px;
+}
+.manual-payroll-page .pay-wrap > div,
+.manual-payroll-page .payslip-panel { min-width: 0; }
+.manual-payroll-page .card {
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #dce5ed);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(20, 48, 73, .055);
+}
+.manual-payroll-page .pay-wrap > div:first-child > .card,
+.manual-payroll-page .payslip-panel > .card {
+  padding: 20px;
+}
+.manual-payroll-page .card-title {
+  position: relative;
+  padding: 0 0 13px;
+  margin: 0 0 14px;
+  border: 0;
+  color: var(--heading);
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.manual-payroll-page .card-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 34px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--sky);
+}
+.manual-payroll-page .card-title span {
+  font-family: var(--font-body);
+}
+.manual-payroll-page #payForm > .form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.manual-payroll-page #payForm .form-group {
+  min-width: 0;
+  margin-bottom: 0;
+}
+.manual-payroll-page .employee-search-hint {
+  margin-top: 6px;
+  color: var(--text2);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+/* Searchable employee picker styled to look like the original select/dropdown. */
+.manual-payroll-page .employee-picker { position:relative; width:100%; }
+.manual-payroll-page #employeeSearch { padding-right:34px !important; cursor:text; }
+.manual-payroll-page .employee-picker::after {
+  content:''; position:absolute; right:13px; top:13px; width:7px; height:7px;
+  border-right:2px solid var(--text2); border-bottom:2px solid var(--text2);
+  transform:rotate(45deg); pointer-events:none; opacity:.9;
+}
+.manual-payroll-page .employee-picker:focus-within::after {
+  border-color:var(--sky); transform:rotate(225deg) translate(-1px,-1px); top:16px;
+}
+.manual-payroll-page .employee-option-list {
+  position:absolute; top:calc(100% + 3px); left:0; right:0; z-index:180;
+  max-height:min(320px, 45vh); overflow-y:auto; overscroll-behavior:contain;
+  padding:4px; background:var(--input-bg); color:var(--input-fg);
+  border:1px solid var(--border); border-radius:5px;
+  box-shadow:0 12px 28px rgba(0,0,0,.24);
+}
+.manual-payroll-page #employeeOptionList[hidden] { display:none !important; }
+.manual-payroll-page .employee-option-placeholder {
+  padding:9px 10px; color:var(--text2); font-size:12px;
+  border-bottom:1px solid var(--border); margin-bottom:3px;
+}
+.manual-payroll-page .employee-option[hidden] { display:none !important; }
+.manual-payroll-page .employee-option {
+  display:block; width:100%; padding:9px 10px; text-align:left;
+  border:0; border-radius:3px; background:transparent; color:var(--input-fg);
+  font:500 12px/1.4 var(--font-body, 'Montserrat', sans-serif); cursor:pointer;
+}
+.manual-payroll-page .employee-option:hover,
+.manual-payroll-page .employee-option:focus,
+.manual-payroll-page .employee-option[aria-selected='true'],
+.manual-payroll-page .employee-option.keyboard-active {
+  outline:none; background:var(--row-hover); color:var(--heading);
+}
+.manual-payroll-page .employee-option[aria-selected='true'] { box-shadow:inset 3px 0 0 var(--sky); }
+.manual-payroll-page .employee-no-matches {
+  padding:11px 10px; color:var(--text2); font-size:12px;
+}
+.manual-payroll-page .employee-no-matches[hidden] { display:none !important; }
+.manual-payroll-page #employeeSearch[aria-invalid='true'] {
+  border-color:var(--error);
+  box-shadow:0 0 0 2px rgba(220, 0, 30, .10);
+}
+.manual-payroll-page #payForm .form-group label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text2, #6b7e90);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .075em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+.manual-payroll-page #payForm input[type='month'],
+.manual-payroll-page #payForm input[type='text'],
+.manual-payroll-page #payForm select {
+  width: 100%;
+  min-width: 0;
+  min-height: 37px;
+  padding: 8px 11px;
+  color: var(--input-fg);
+  background: var(--input-bg);
+  border: 1px solid var(--border, #d3dce4);
+  border-radius: 5px;
+  box-shadow: none;
+  font-size: 12px;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.manual-payroll-page #payForm input[type='month']:focus,
+.manual-payroll-page #payForm input[type='text']:focus,
+.manual-payroll-page #payForm select:focus,
+.manual-payroll-page .ded-table input[type='number']:focus {
+  outline: none;
+  border-color: var(--accent2, #143256);
+  box-shadow: 0 0 0 2px rgba(89, 203, 232, .12);
+}
+.manual-payroll-page .ded-table {
+  margin-top: 2px;
+  font-size: 12px;
+}
+.manual-payroll-page .ded-table th {
+  padding: 8px 9px;
+  background: var(--th-bg);
+  color: var(--th-fg);
+  font-size: 10px;
+  letter-spacing: .055em;
+  border-top: 1px solid var(--border, #e0e5e9);
+  border-bottom: 1px solid var(--border, #d8e0e7);
+}
+.manual-payroll-page .ded-table td {
+  padding: 6px 9px;
+  border-bottom: 1px solid var(--border, #dce4eb);
+  line-height: 1.25;
+}
+.manual-payroll-page .ded-table td:first-child {
+  color: var(--text);
+}
+.manual-payroll-page .ded-table td:last-child {
+  color: var(--accent, #DC001E);
+  font-size: 12px;
+  font-weight: 600;
+}
+.manual-payroll-page .ded-table input[type='number'] {
+  width: 100px;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  font-size: 12px;
+}
+.manual-payroll-page .ded-table .unit-hint {
+  color: var(--text2, #7b8b9a);
+  font-size: 10px;
+}
+.manual-payroll-page .total-ded-row td {
+  background: rgba(89, 203, 232, .14) !important;
+  border-top: 1px solid rgba(89, 203, 232, .55) !important;
+  padding: 10px 9px !important;
+  color: var(--heading) !important;
+  font-size: 12px !important;
+}
+.manual-payroll-page #payForm > .form-group {
+  margin-top: 13px !important;
+}
+.manual-payroll-page #payForm > .form-group input[type='text'] {
+  font-size: 12px;
+}
+.manual-payroll-page #payForm > div:last-child {
+  margin-top: 12px !important;
+}
+.manual-payroll-page #payForm .btn,
+.manual-payroll-page .export-btns .btn {
+  min-height: 34px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .025em;
+  text-transform: uppercase;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.manual-payroll-page #payForm .btn:hover,
+.manual-payroll-page .export-btns .btn:hover {
+  transform: translateY(-1px);
+}
+.manual-payroll-page .payslip-panel {
+  position: sticky;
+  top: 14px;
+}
+.manual-payroll-page .payslip-panel .card-title {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+.manual-payroll-page .ps-section-title {
+  padding: 10px 0 5px;
+  color: var(--text2, #687e91);
+  border-bottom-color: var(--border, #dce4eb);
+  font-size: 10px;
+}
+.manual-payroll-page .ps-row { font-size: 12px; }
+.manual-payroll-page .ps-total-ded {
+  border-radius: 5px;
+  border-color: rgba(89, 203, 232, .55);
+  background: rgba(89, 203, 232, .14);
+}
+.manual-payroll-page .ps-total-ded .label,
+.manual-payroll-page .ps-total-ded .value { color: var(--heading); }
+.manual-payroll-page .ps-net {
+  background: var(--navy);
+  border: 1px solid rgba(89, 203, 232, .18);
+  border-radius: 6px;
+}
+.manual-payroll-page .ps-placeholder {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 14px;
+}
+.manual-payroll-page .ps-placeholder .ico {
+  font-size: 48px;
+  margin-bottom: 14px;
+}
+.manual-payroll-page .hist-table {
+  font-size: 12px;
+}
+.manual-payroll-page .hist-table th {
+  background: var(--th-bg);
+  color: var(--th-fg);
+  padding: 9px 10px;
+  font-size: 10px;
+  border-bottom: 1px solid var(--border, #dce4eb);
+}
+.manual-payroll-page .hist-table td {
+  padding: 9px 10px;
+  white-space: nowrap;
+}
+.manual-payroll-page .hist-table .net-col { color: var(--accent2, #143256); }
+.manual-payroll-page .hist-table .ded-col { color: var(--payroll-red); }
+.manual-payroll-page #empBanner {
+  background: var(--navy);
+  color: #fff;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(20, 48, 73, .08);
+}
+.manual-payroll-page select option {
+  background: var(--input-bg);
+  color: var(--input-fg);
+}
+.manual-payroll-page input::placeholder,
+.manual-payroll-page textarea::placeholder {
+  color: var(--text2);
+  opacity: .8;
+}
+.manual-payroll-page #ps_brackets_tbl th {
+  background: var(--th-bg) !important;
+  color: var(--th-fg) !important;
+  border-bottom: 1px solid var(--border);
+}
+/* Explicit dark-mode contrast fixes for page-specific legacy colors. */
+[data-theme="dark"] .manual-payroll-page .card-title { color: var(--heading); }
+[data-theme="dark"] .manual-payroll-page .card-title::after { background: var(--sky); }
+[data-theme="dark"] .manual-payroll-page .ded-table th,
+[data-theme="dark"] .manual-payroll-page .hist-table th { background: var(--th-bg); color: var(--th-fg); }
+[data-theme="dark"] .manual-payroll-page .total-ded-row td {
+  background: rgba(89, 203, 232, .14) !important;
+  border-top-color: rgba(89, 203, 232, .45) !important;
+  color: #FFFFFF !important;
+}
+[data-theme="dark"] .manual-payroll-page .ps-total-ded {
+  background: rgba(89, 203, 232, .10);
+  border-color: rgba(89, 203, 232, .40);
+}
+[data-theme="dark"] .manual-payroll-page .ps-total-ded .label,
+[data-theme="dark"] .manual-payroll-page .ps-total-ded .value,
+[data-theme="dark"] .manual-payroll-page .ded-table td:last-child,
+[data-theme="dark"] .manual-payroll-page .hist-table .ded-col { color: #FFFFFF; }
+[data-theme="dark"] .manual-payroll-page .ps-net {
+  background: linear-gradient(135deg, #252A2F 0%, #30363C 100%);
+  border-color: #3D444B;
+}
+[data-theme="dark"] .manual-payroll-page .ps-net .label { color: #59CBE8; opacity: 1; }
+[data-theme="dark"] .manual-payroll-page #empBanner {
+  background: #252A2F;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--sky);
+}
+[data-theme="dark"] .manual-payroll-page #ps_brackets_tbl thead tr { background: var(--th-bg) !important; }
+[data-theme="dark"] .manual-payroll-page #ps_brackets_tbl th { background: var(--th-bg) !important; color: var(--th-fg) !important; }
+
+@media (max-width: 1100px) {
+  .manual-payroll-page .pay-wrap {
+    grid-template-columns: minmax(0, 1fr) minmax(270px, 310px);
+    gap: 14px;
+  }
+}
+@media (max-width: 900px) {
+  .manual-payroll-page .pay-wrap { grid-template-columns: minmax(0, 1fr); }
+  .manual-payroll-page .payslip-panel { position: static; }
+}
+@media (max-width: 600px) {
+  .manual-payroll-page .pay-wrap > div:first-child > .card,
+  .manual-payroll-page .payslip-panel > .card { padding: 14px; }
+  .manual-payroll-page #payForm > .form-row { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .manual-payroll-page .ded-table { display: block; width: 100%; overflow-x: auto; }
+  .manual-payroll-page .ded-table th,
+  .manual-payroll-page .ded-table td { white-space: nowrap; }
+  .manual-payroll-page .ded-table input[type='number'] { width: 88px; }
+  .manual-payroll-page .hist-table { min-width: 850px; }
+}
+@media print {
+  .manual-payroll-page .pay-wrap { grid-template-columns: minmax(0, 1fr) 320px; gap: 10px; }
+  .manual-payroll-page .card { box-shadow: none !important; break-inside: avoid; }
+  .manual-payroll-page .export-btns,
+  .manual-payroll-page #payForm > div:last-child { display: none !important; }
+  .manual-payroll-page .payslip-panel { position: static; }
+}
+
+/* Icons: same outline style as the dashboard */
+.manual-payroll-page .ic { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+.manual-payroll-page .pm-ico { display:inline-flex; align-items:center; }
+.manual-payroll-page .pm-ico .ic { width:24px; height:24px; }
+.manual-payroll-page .ps-placeholder .ico { font-size:0; margin-bottom:14px; color:var(--navy); opacity:.75; }
+.manual-payroll-page .ps-placeholder .ico .ic { width:44px; height:44px; stroke-width:1.4; }
+[data-theme="dark"] .manual-payroll-page .ps-placeholder .ico { color:var(--sky); }
+
+/* ── Progress bar ────────────────────────────────────────── */
+.payroll-progress-bar-wrap {
+  display:flex; align-items:center; gap:14px;
+  background:var(--card,#fff); border:1px solid var(--border,#D9E0E7);
+  border-radius:10px; padding:12px 18px; margin-bottom:16px;
+}
+.payroll-progress-bar-wrap .prog-label { font-size:13px; color:var(--text2,#52677E); white-space:nowrap; }
+.payroll-progress-bar-wrap .prog-label strong { color:var(--navy,#143256); }
+.prog-track { flex:1; height:8px; background:var(--border,#D9E0E7); border-radius:999px; overflow:hidden; min-width:60px; }
+.prog-fill  { height:100%; background:var(--sky,#59CBE8); border-radius:999px; transition:width .4s ease; }
+.prog-fill.prog-done { background:#22c55e; }
+.prog-count-badge {
+  font-size:12px; font-weight:700; padding:3px 10px;
+  border-radius:999px; background:var(--bg2,#f5f7fa);
+  color:var(--text2,#52677E); white-space:nowrap;
+}
+.prog-count-badge.all-done { background:#dcfce7; color:#15803d; }
+
+/* ── Employee status badges in dropdown ─────────────────── */
+.employee-option .emp-status-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:10px; font-weight:700; padding:1px 7px;
+  border-radius:999px; margin-left:8px; vertical-align:middle;
+}
+.emp-status-badge.badge-done    { background:#dcfce7; color:#15803d; }
+.emp-status-badge.badge-pending { background:#fef9c3; color:#854d0e; }
+
+/* ── Saved indicator on banner ──────────────────────────── */
+.banner-saved-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:999px;
+  font-size:11px; font-weight:700;
+  margin-left:10px; vertical-align:middle;
+}
+.banner-saved-badge.saved-yes { background:#dcfce7; color:#15803d; }
+.banner-saved-badge.saved-no  { background:#fef9c3; color:#854d0e; }
+
+/* ── Overwrite warning modal ────────────────────────────── */
+#overwModal {
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,.45); align-items:center; justify-content:center;
+}
+#overwModal.open { display:flex; }
+#overwModalBox {
+  background:var(--card,#fff); border-radius:14px;
+  padding:28px 32px; max-width:420px; width:90%;
+  box-shadow:0 8px 40px rgba(0,0,0,.18);
+}
+#overwModalBox .modal-icon { font-size:36px; text-align:center; margin-bottom:10px; }
+#overwModalBox h3 { font-size:18px; color:var(--navy,#143256); margin:0 0 8px; text-align:center; }
+#overwModalBox p  { font-size:13px; color:var(--text2,#52677E); text-align:center; margin:0 0 20px; line-height:1.6; }
+#overwModalBox .modal-btns { display:flex; gap:10px; justify-content:center; }
+#overwModalBox .modal-btns button { min-width:110px; }
+
+</style>
+{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('payroll_menu') }}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+{% block content %}
+<div class="manual-payroll-page">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="pm-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol>
+  <symbol id="pm-file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+</svg>
+
+<!-- Employee banner (shown when employee selected) -->
+<!-- ── Overwrite warning modal ── -->
+<div id="overwModal" role="dialog" aria-modal="true" aria-labelledby="overwModalTitle">
+  <div id="overwModalBox">
+    <div class="modal-icon">⚠️</div>
+    <h3 id="overwModalTitle">Payroll Already Saved</h3>
+    <p id="overwModalMsg">This employee's payroll for <strong id="overwModalMonth"></strong> has already been calculated and saved.<br>What would you like to do?</p>
+    <div class="modal-btns" style="flex-wrap:wrap;gap:8px;">
+      <button type="button" class="btn btn-secondary" id="overwCancelBtn">Cancel</button>
+      <button type="button" class="btn btn-primary" id="overwEditBtn" style="background:#1e5fa8;border-color:#1e5fa8;">✏️ Edit</button>
+      <button type="button" class="btn btn-primary" id="overwConfirmBtn" style="background:#dc2626;border-color:#dc2626;">Overwrite</button>
+    </div>
+    <p style="font-size:11px;color:var(--text2);text-align:center;margin:10px 0 0;line-height:1.5;">
+      <strong>Edit</strong> — loads saved values for editing individual fields.<br>
+      <strong>Overwrite</strong> — starts fresh with a blank form.
+    </p>
+  </div>
+</div>
+
+<!-- ── Progress bar ── -->
+{%- set pct = ((done_count / total_count * 100) | int) if total_count else 0 -%}
+<div class="payroll-progress-bar-wrap">
+  <div class="prog-label">
+    <strong id="progDoneCount">{{ done_count }}</strong> / <strong>{{ total_count }}</strong> employees done
+  </div>
+  <div class="prog-track">
+    <div class="prog-fill{% if done_count == total_count and total_count > 0 %} prog-done{% endif %}"
+         id="progFill"
+         style="width:{{ pct }}%;"></div>
+  </div>
+  <div class="prog-count-badge{% if done_count == total_count and total_count > 0 %} all-done{% endif %}" id="progBadge">
+    {% if done_count == total_count and total_count > 0 %}All Done ✓{% else %}{{ pct }}%{% endif %}
+  </div>
+</div>
+
+<div id="empBanner"{% if sel_emp %} class="visible"{% endif %}>
+  <span class="pm-ico"><svg class="ic"><use href="#pm-user"/></svg></span>
+  <div>
+    <div class="emp-name" id="bannerName">
+      {% if sel_emp %}{{ sel_emp.name }}{% endif %}
+    </div>
+    <div style="font-size:12px;opacity:.8;" id="bannerSub">
+      {% if sel_emp %}{{ sel_emp.emp_id }}{% if sel_emp.dept %} · {{ sel_emp.dept }}{% endif %}{% if sel_emp.job %} · {{ sel_emp.job }}{% endif %}{% endif %}
+    </div>
+  </div>
+  <div class="emp-meta" id="bannerGross">
+    <span id="grossText">{% if sel_emp %}Gross: <strong>EGP {{ "%.2f"|format(result.gross if result else 0) }}</strong>{% endif %}</span>
+    <span class="banner-saved-badge {% if sel_emp and sel_emp.done %}saved-yes{% else %}saved-no{% endif %}" id="bannerSavedBadge"
+          {% if not sel_emp %}style="display:none"{% endif %}>
+      {% if sel_emp and sel_emp.done %}✓ Saved{% else %}⏳ Pending{% endif %}
+    </span>
+  </div>
+</div>
+
+<div class="pay-wrap">
+<!-- ═══════════════════════════════════════════════════════
+     LEFT: Input form + deductions table
+══════════════════════════════════════════════════════════ -->
+<div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-title">Employee &amp; Payroll Month</div>
+    <form method="POST" id="payForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Payroll Month *</label>
+          <input type="month" name="month" id="month" value="{{ month }}" required>
+        </div>
+        <div class="form-group" style="flex:2;">
+          <label for="employeeSearch">Employee *</label>
+          <div class="employee-picker" id="employeePicker">
+            <input type="text" id="employeeSearch"
+                   placeholder="— Select employee —" autocomplete="off" required
+                   role="combobox" aria-autocomplete="list" aria-expanded="false"
+                   aria-controls="employeeOptionList" aria-describedby="employeeSearchHint">
+            <div id="employeeOptionList" class="employee-option-list" role="listbox" hidden>
+              <div class="employee-option-placeholder">— Select employee —</div>
+              {% for e in emp_list %}
+              <button type="button" class="employee-option" role="option"
+                      data-eid="{{ e.eid }}"
+                      data-done="{{ 'true' if e.done else 'false' }}"
+                      data-search="{{ (e.name ~ ' ' ~ (e.emp_id or ''))|e }}"
+                      aria-selected="{% if sel_emp and sel_emp.eid==e.eid %}true{% else %}false{% endif %}">{{ e.name }}{% if e.emp_id %} ({{ e.emp_id }}){% endif %}
+                <span class="emp-status-badge {% if e.done %}badge-done{% else %}badge-pending{% endif %}">
+                  {% if e.done %}✓ Done{% else %}Pending{% endif %}
+                </span>
+              </button>
+              {% endfor %}
+              <div id="employeeNoMatches" class="employee-no-matches" hidden>No matching employees.</div>
+            </div>
+          </div>
+          <div id="employeeSearchHint" class="employee-search-hint">Type to search, or open the dropdown to select an employee.</div>
+          <select name="eid" id="empSel" hidden aria-hidden="true" tabindex="-1">
+            <option value="">— Select employee —</option>
+            {% for e in emp_list %}
+            <option value="{{ e.eid }}"
+              {% if sel_emp and sel_emp.eid==e.eid %}selected{% endif %}>
+              {{ e.name }}{% if e.emp_id %} ({{ e.emp_id }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- ── Tab nav — 2 tabs for Egyptians, 4 tabs for Expats ── -->
+      <!-- Egyptian tabs (shown by default; hidden when expat selected) -->
+      <div class="tab-nav" id="tabNavEgyptian" style="display:{% if sel_emp and sel_emp.get('is_expat') %}none{% else %}flex{% endif %};gap:0;border-bottom:2px solid var(--sky,#59CBE8);margin:12px 0 0;">
+        <button type="button" class="tab-btn active" data-tab="tab-egp-earnings"
+                style="padding:7px 18px;border:none;background:var(--sky,#59CBE8);color:#fff;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;font-size:13px;">
+          Earnings
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-egp-deductions"
+                style="padding:7px 18px;border:none;background:transparent;color:var(--text1,#143256);font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;font-size:13px;">
+          Deductions
+        </button>
+      </div>
+      <!-- Expat tabs (hidden by default; shown when expat selected) -->
+      <div class="tab-nav" id="tabNavExpat" style="display:{% if sel_emp and sel_emp.get('is_expat') %}flex{% else %}none{% endif %};gap:0;border-bottom:2px solid var(--sky,#59CBE8);margin:12px 0 0;flex-wrap:wrap;">
+        <button type="button" class="tab-btn-expat tab-btn-expat-active" data-tab="tab-egp-earnings"
+                style="padding:7px 14px;border:none;background:var(--sky,#59CBE8);color:#fff;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;font-size:12px;">
+          EGP Earnings
+        </button>
+        <button type="button" class="tab-btn-expat" data-tab="tab-egp-deductions"
+                style="padding:7px 14px;border:none;background:transparent;color:var(--text1,#143256);font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;font-size:12px;">
+          EGP Deductions
+        </button>
+        <button type="button" class="tab-btn-expat" data-tab="tab-gbp-earnings"
+                style="padding:7px 14px;border:none;background:transparent;color:var(--text1,#143256);font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;font-size:12px;">
+          GBP Earnings
+        </button>
+        <button type="button" class="tab-btn-expat" data-tab="tab-gbp-deductions"
+                style="padding:7px 14px;border:none;background:transparent;color:var(--text1,#143256);font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;font-size:12px;">
+          GBP Deductions
+        </button>
+      </div>
+
+      <!-- ══ EGP EARNINGS TAB (used by both Egyptian and Expat) ══ -->
+      <div id="tab-egp-earnings" class="khr-tab-pane" style="padding-top:14px;display:block;">
+
+        <!-- Expat GBP/EGP rate block — shown only when selected employee is Expat -->
+        <div id="expatRateBlock" style="display:{% if sel_emp and sel_emp.get('is_expat') %}block{% else %}none{% endif %};
+             margin-bottom:14px;padding:12px 16px;background:linear-gradient(135deg,#f0f7ff,#e8f4fd);
+             border:1px solid #bdd9f5;border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:#1e5fa8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">
+            🌍 Expat Salary Split
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="font-size:12px;font-weight:600;white-space:nowrap;margin:0;">GBP / EGP Rate <span style="color:#e53e3e">*</span></label>
+              <input type="number" step="0.01" min="0" name="gbp_rate" id="gbpRateInput"
+                     value="{{ saved_inputs.gbp_rate if saved_inputs and saved_inputs.gbp_rate else (calc_gbp_rate if calc_gbp_rate else (default_gbp_rate or '')) }}"
+                     placeholder="e.g. 50.00" style="width:110px;padding:5px 8px;border:1px solid #bdd9f5;border-radius:5px;font-size:13px;"
+                     oninput="updateExpat()">
+              <span style="font-size:11px;color:#555;">EGP per £1</span>
+            </div>
+            <div id="expatSplitPreview" style="font-size:12px;color:#333;">
+              {%- if sel_emp and sel_emp.get('is_expat') and sel_emp.get('gbp_salary',0) -%}
+                GBP Salary: <strong>£{{ "%.2f"|format(sel_emp.gbp_salary|float) }}</strong>
+                &nbsp;→&nbsp; 75% GBP: <strong id="splitGBP">£{{ "%.2f"|format(sel_emp.gbp_salary|float * 0.75) }}</strong>
+                &nbsp;|&nbsp; 25% EGP: <strong id="splitEGP">EGP —</strong>
+              {%- else -%}
+                GBP Salary: <strong>—</strong>
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+
+        <!-- EGP Earnings — always shown (expats now have dedicated EGP Earnings tab) -->
+        <div id="egpEarningsBlock" style="display:block;">
+        <table class="ded-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Earning</th>
+              <th style="width:30%;">Amount (EGP)</th>
+              <th style="width:30%;text-align:right;">This Month</th>
+            </tr>
+          </thead>
+          <tbody>
+            {%- set _va  = saved_inputs.variable_allowances    if saved_inputs else (result.inputs.variable_allowances    if result else '') -%}
+            {%- set _ov  = saved_inputs.overtime               if saved_inputs else (result.inputs.overtime               if result else '') -%}
+            {%- set _bn  = saved_inputs.bonuses                if saved_inputs else (result.inputs.bonuses                if result else '') -%}
+            {%- set _cm  = saved_inputs.commissions            if saved_inputs else (result.inputs.commissions            if result else '') -%}
+            {%- set _fa  = saved_inputs.flight_allowance        if saved_inputs else (result.inputs.flight_allowance        if result else '') -%}
+            {%- set _rb  = saved_inputs.reimbursement          if saved_inputs else (result.inputs.reimbursement          if result else '') -%}
+            {%- set _ra  = saved_inputs.reallocation_allowance if saved_inputs else (result.inputs.reallocation_allowance if result else '') -%}
+            <tr>
+              <td>Variable Allowances</td>
+              <td><input type="number" step="0.01" min="0" name="variable_allowances" id="f_va"
+                         value="{{ '%.2f'|format(_va|float) if _va != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">EGP</span></td>
+              <td id="amt_va" style="text-align:right;">
+                {% if result %}{{ "EGP %.2f"|format(result.inputs.get('variable_allowances',0)|float) }}{% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Overtime</td>
+              <td><input type="number" step="0.01" min="0" name="overtime" id="f_ov"
+                         value="{{ '%.2f'|format(_ov|float) if _ov != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">EGP</span></td>
+              <td id="amt_ov" style="text-align:right;">
+                {% if result %}{{ "EGP %.2f"|format(result.inputs.get('overtime',0)|float) }}{% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Bonuses</td>
+              <td><input type="number" step="0.01" min="0" name="bonuses" id="f_bn"
+                         value="{{ '%.2f'|format(_bn|float) if _bn != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">EGP</span></td>
+              <td id="amt_bn" style="text-align:right;">
+                {% if result %}{{ "EGP %.2f"|format(result.inputs.get('bonuses',0)|float) }}{% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Commissions / Other Earnings</td>
+              <td><input type="number" step="0.01" min="0" name="commissions" id="f_cm"
+                         value="{{ '%.2f'|format(_cm|float) if _cm != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">EGP</span></td>
+              <td id="amt_cm" style="text-align:right;">
+                {% if result %}{{ "EGP %.2f"|format(result.inputs.get('commissions',0)|float) }}{% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Flight Allowance</td>
+              <td><input type="number" step="0.01" min="0" name="flight_allowance" id="f_fa"
+                         value="{{ '%.2f'|format(_fa|float) if _fa != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">EGP</span></td>
+              <td id="amt_fa" style="text-align:right;">
+                {% if result %}{{ "EGP %.2f"|format(result.inputs.get('flight_allowance',0)|float) }}{% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Re-Imbursement</td>
+              <td><input type="number" step="0.01" min="0" name="reimbursement" id="f_rb"
+                         value="{{ '%.2f'|format(_rb|float) if _rb != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">EGP</span></td>
+              <td id="amt_rb" style="text-align:right;">
+                {% if result %}{{ "EGP %.2f"|format(result.inputs.get('reimbursement',0)|float) }}{% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Re-Allocation Allowance</td>
+              <td><input type="number" step="0.01" min="0" name="reallocation_allowance" id="f_ra"
+                         value="{{ '%.2f'|format(_ra|float) if _ra != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">EGP</span></td>
+              <td id="amt_ra" style="text-align:right;">
+                {% if result %}{{ "EGP %.2f"|format(result.inputs.get('reallocation_allowance',0)|float) }}{% else %}—{% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </div><!-- end egpEarningsBlock -->
+      </div><!-- end tab-egp-earnings -->
+
+      <!-- ══ GBP EARNINGS TAB (Expat only) ══ -->
+      <div id="tab-gbp-earnings" class="khr-tab-pane" style="padding-top:14px;display:none;">
+
+        <!-- GBP Earnings sub-section (Expat only) -->
+        <div id="expatEarningsBlock" style="border:1px solid #bdd9f5;border-radius:8px;overflow:hidden;">
+          <div style="background:linear-gradient(90deg,#1e5fa8,#2a7ec0);padding:8px 14px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.08em;">🌍 GBP Variable Earnings</span>
+            <span style="font-size:11px;color:rgba(255,255,255,.75);margin-left:auto;">Expat — amounts in GBP (£)</span>
+          </div>
+          <table class="ded-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th style="width:40%;">GBP Earning</th>
+                <th style="width:30%;">Amount (GBP £)</th>
+                <th style="width:30%;text-align:right;">This Month</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- set _gd = result.gbp_data if (result is defined and result and result.gbp_data is defined and result.gbp_data) else {} -%}
+              {%- set _gbpva = saved_inputs.gbp_variable_allowances    if saved_inputs else _gd.get('gbp_variable_allowances',    '') -%}
+              {%- set _gbpov = saved_inputs.gbp_overtime               if saved_inputs else _gd.get('gbp_overtime',               '') -%}
+              {%- set _gbpbn = saved_inputs.gbp_bonuses                if saved_inputs else _gd.get('gbp_bonuses',                '') -%}
+              {%- set _gbpcm = saved_inputs.gbp_commissions            if saved_inputs else _gd.get('gbp_commissions',            '') -%}
+              {%- set _gbpfa = saved_inputs.gbp_flight_allowance       if saved_inputs else _gd.get('gbp_flight_allowance',       '') -%}
+              {%- set _gbprb = saved_inputs.gbp_reimbursement          if saved_inputs else _gd.get('gbp_reimbursement',          '') -%}
+              {%- set _gbpra = saved_inputs.gbp_reallocation_allowance if saved_inputs else _gd.get('gbp_reallocation_allowance', '') -%}
+              {%- set _gbpoe = saved_inputs.gbp_other_earnings         if saved_inputs else _gd.get('gbp_other_earnings',         '') -%}
+              <tr>
+                <td>Variable Allowances</td>
+                <td><input type="number" step="0.01" min="0" name="gbp_variable_allowances" id="f_gbp_va"
+                           value="{{ '%.2f'|format(_gbpva|float) if _gbpva != '' else '' }}" placeholder="0.00">
+                    <span class="unit-hint">£</span></td>
+                <td style="text-align:right;">
+                  {% if _gd %}£{{ "%.2f"|format(_gd.get('gbp_variable_allowances',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Overtime</td>
+                <td><input type="number" step="0.01" min="0" name="gbp_overtime" id="f_gbp_ov"
+                           value="{{ '%.2f'|format(_gbpov|float) if _gbpov != '' else '' }}" placeholder="0.00">
+                    <span class="unit-hint">£</span></td>
+                <td style="text-align:right;">
+                  {% if _gd %}£{{ "%.2f"|format(_gd.get('gbp_overtime',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Bonuses</td>
+                <td><input type="number" step="0.01" min="0" name="gbp_bonuses" id="f_gbp_bn"
+                           value="{{ '%.2f'|format(_gbpbn|float) if _gbpbn != '' else '' }}" placeholder="0.00">
+                    <span class="unit-hint">£</span></td>
+                <td id="amt_gbp_bn" style="text-align:right;">
+                  {% if _gd %}£{{ "%.2f"|format(_gd.get('gbp_bonuses',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Commissions / Other Earnings</td>
+                <td><input type="number" step="0.01" min="0" name="gbp_commissions" id="f_gbp_cm"
+                           value="{{ '%.2f'|format(_gbpcm|float) if _gbpcm != '' else '' }}" placeholder="0.00">
+                    <span class="unit-hint">£</span></td>
+                <td style="text-align:right;">
+                  {% if _gd %}£{{ "%.2f"|format(_gd.get('gbp_commissions',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Flight Allowance</td>
+                <td><input type="number" step="0.01" min="0" name="gbp_flight_allowance" id="f_gbp_fa"
+                           value="{{ '%.2f'|format(_gbpfa|float) if _gbpfa != '' else '' }}" placeholder="0.00">
+                    <span class="unit-hint">£</span></td>
+                <td style="text-align:right;">
+                  {% if _gd %}£{{ "%.2f"|format(_gd.get('gbp_flight_allowance',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Re-Imbursement</td>
+                <td><input type="number" step="0.01" min="0" name="gbp_reimbursement" id="f_gbp_rb"
+                           value="{{ '%.2f'|format(_gbprb|float) if _gbprb != '' else '' }}" placeholder="0.00">
+                    <span class="unit-hint">£</span></td>
+                <td style="text-align:right;">
+                  {% if _gd %}£{{ "%.2f"|format(_gd.get('gbp_reimbursement',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Re-Allocation Allowance</td>
+                <td><input type="number" step="0.01" min="0" name="gbp_reallocation_allowance" id="f_gbp_ra"
+                           value="{{ '%.2f'|format(_gbpra|float) if _gbpra != '' else '' }}" placeholder="0.00">
+                    <span class="unit-hint">£</span></td>
+                <td style="text-align:right;">
+                  {% if _gd %}£{{ "%.2f"|format(_gd.get('gbp_reallocation_allowance',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Other Earnings</td>
+                <td><input type="number" step="0.01" min="0" name="gbp_other_earnings" id="f_gbp_oe"
+                           value="{{ '%.2f'|format(_gbpoe|float) if _gbpoe != '' else '' }}" placeholder="0.00">
+                    <span class="unit-hint">£</span></td>
+                <td id="amt_gbp_oe" style="text-align:right;">
+                  {% if _gd %}£{{ "%.2f"|format(_gd.get('gbp_other_earnings',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr class="total-ded-row" style="background:rgba(30,95,168,.08)!important;border-top:2px solid #1e5fa8!important;">
+                <td colspan="2" style="color:#1e5fa8!important;">TOTAL GBP EARNINGS</td>
+                <td id="amt_gbp_earn_total" style="color:#1e5fa8!important;text-align:right;">
+                  {% if _gd %}
+                    £{{ "%.2f"|format((_gd.get('gbp_component',0)|float)+(_gd.get('gbp_variable_allowances',0)|float)+(_gd.get('gbp_overtime',0)|float)+(_gd.get('gbp_bonuses',0)|float)+(_gd.get('gbp_commissions',0)|float)+(_gd.get('gbp_flight_allowance',0)|float)+(_gd.get('gbp_reimbursement',0)|float)+(_gd.get('gbp_reallocation_allowance',0)|float)+(_gd.get('gbp_other_earnings',0)|float)) }}
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div><!-- end expatEarningsBlock -->
+      </div><!-- end tab-gbp-earnings -->
+
+      <!-- ══ EGP DEDUCTIONS TAB (replaces old tab-deductions for all employees) ══ -->
+      <div id="tab-egp-deductions" class="khr-tab-pane" style="padding-top:14px;display:none;">
+      <!-- EGP Deductions — always shown in EGP Deductions tab -->
+      <div id="egpDeductionsBlock" style="display:block;">
+      <table class="ded-table">
+        <thead>
+          <tr>
+            <th style="width:40%;">Deduction</th>
+            <th style="width:30%;">Enter</th>
+            <th style="width:30%;text-align:right;">Amount (EGP)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {# Helper: saved_inputs takes priority, then result.inputs, then blank #}
+          {%- set _ab  = saved_inputs.absent_days   if saved_inputs else (result.inputs.absent_days   if result else '') -%}
+          {%- set _lt  = saved_inputs.late_minutes  if saved_inputs else (result.inputs.late_minutes  if result else '') -%}
+          {%- set _sk  = saved_inputs.sick_days     if saved_inputs else (result.inputs.sick_days     if result else '') -%}
+          {%- set _san = saved_inputs.sanction_days if saved_inputs else (result.inputs.sanction_days if result else '') -%}
+          {%- set _oth = saved_inputs.other_amount  if saved_inputs else (result.ded.other            if result else '') -%}
+          {%- set _ln  = saved_inputs.loan          if saved_inputs else (result.loan                 if result else '') -%}
+          <!-- Absences -->
+          <tr>
+            <td>Absences</td>
+            <td>
+              <input type="number" step="0.25" min="0" name="absent_days" id="f_absent"
+                     value="{{ '%.2f'|format(_ab|float) if _ab != '' else '' }}" placeholder="0">
+              <span class="unit-hint">days</span>
+            </td>
+            <td id="amt_absent">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.absences) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Late / Early -->
+          <tr>
+            <td>Late / Early</td>
+            <td>
+              <input type="number" step="1" min="0" name="late_minutes" id="f_late"
+                     value="{{ '%.0f'|format(_lt|float) if _lt != '' else '' }}" placeholder="0">
+              <span class="unit-hint">mins</span>
+            </td>
+            <td id="amt_late">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.lateness) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Sick Leave -->
+          <tr>
+            <td>Sick Leave</td>
+            <td>
+              <input type="number" step="0.25" min="0" name="sick_days" id="f_sick"
+                     value="{{ '%.2f'|format(_sk|float) if _sk != '' else '' }}" placeholder="0">
+              <span class="unit-hint">days</span>
+            </td>
+            <td id="amt_sick">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.sick) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Sanctions (days × day rate) -->
+          <tr>
+            <td>Sanctions</td>
+            <td>
+              <input type="number" step="0.25" min="0" name="sanction_days" id="f_sanction"
+                     value="{{ '%.2f'|format(_san|float) if _san != '' else '' }}" placeholder="0">
+              <span class="unit-hint">days</span>
+            </td>
+            <td id="amt_sanction">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.sanctions) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Other Deductions (EGP direct) -->
+          <tr>
+            <td>Other Deductions</td>
+            <td>
+              <input type="number" step="0.01" min="0" name="other_amount" id="f_other"
+                     value="{{ '%.2f'|format(_oth|float) if _oth != '' else '' }}" placeholder="0">
+              <span class="unit-hint">EGP</span>
+            </td>
+            <td id="amt_other">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.other) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Loan -->
+          <tr>
+            <td>Loan Deduction</td>
+            <td>
+              <input type="number" step="0.01" min="0" name="loan" id="f_loan"
+                     value="{{ '%.2f'|format(_ln|float) if _ln != '' else '' }}" placeholder="0">
+              <span class="unit-hint">EGP</span>
+            </td>
+            <td id="amt_loan">
+              {% if result %}{{ "EGP %.2f"|format(result.loan) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Income Tax (calculated) -->
+          <tr>
+            <td style="color:var(--text2);">Income Tax <small>(calculated)</small></td>
+            <td style="color:var(--text2);font-size:12px;">auto</td>
+            <td id="amt_tax">
+              {% if result %}{{ "EGP %.2f"|format(result.tax.monthly_tax) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Total Deductions -->
+          <tr class="total-ded-row">
+            <td colspan="2">TOTAL DEDUCTIONS</td>
+            <td id="amt_total_ded">
+              {% if result %}EGP {{ "%.2f"|format(result.total_ded) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </div><!-- end egpDeductionsBlock -->
+      </div><!-- end tab-egp-deductions -->
+
+      <!-- ══ GBP DEDUCTIONS TAB (Expat only) ══ -->
+      <div id="tab-gbp-deductions" class="khr-tab-pane" style="padding-top:14px;display:none;">
+        <!-- GBP Deductions sub-section (Expat only) -->
+        <div id="expatDeductionsBlock" style="border:1px solid #bdd9f5;border-radius:8px;overflow:hidden;">
+          <div style="background:linear-gradient(90deg,#1e5fa8,#2a7ec0);padding:8px 14px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.08em;">🌍 GBP Deductions</span>
+            <span style="font-size:11px;color:rgba(255,255,255,.75);margin-left:auto;">Expat — amounts in GBP (£)</span>
+          </div>
+          <table class="ded-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th style="width:40%;">GBP Deduction</th>
+                <th style="width:30%;">Enter</th>
+                <th style="width:30%;text-align:right;">Amount (GBP £)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- set _gd2 = result.gbp_data if (result is defined and result and result.gbp_data is defined and result.gbp_data) else {} -%}
+              {%- set _gbpab = saved_inputs.gbp_absent_days    if saved_inputs else _gd2.get('gbp_absent_days',    '') -%}
+              {%- set _gbplt = saved_inputs.gbp_late_minutes   if saved_inputs else _gd2.get('gbp_late_minutes',   '') -%}
+              {%- set _gbpsk = saved_inputs.gbp_sick_days      if saved_inputs else _gd2.get('gbp_sick_days',      '') -%}
+              {%- set _gbpsn = saved_inputs.gbp_sanction_days  if saved_inputs else _gd2.get('gbp_sanction_days',  '') -%}
+              {%- set _gbpod = saved_inputs.gbp_other_deductions if saved_inputs else _gd2.get('gbp_other_deductions', '') -%}
+              {%- set _gbpld = saved_inputs.gbp_loan_deduction   if saved_inputs else _gd2.get('gbp_loan_deduction',   '') -%}
+              <!-- Absences -->
+              <tr>
+                <td>Absences</td>
+                <td>
+                  <input type="number" step="0.25" min="0" name="gbp_absent_days" id="f_gbp_absent"
+                         value="{{ '%.2f'|format(_gbpab|float) if _gbpab != '' else '' }}" placeholder="0">
+                  <span class="unit-hint">days</span>
+                </td>
+                <td id="amt_gbp_absent" style="text-align:right;">
+                  {% if _gd2 and _gd2.get('gbp_absent_amount',0)|float > 0 %}£{{ "%.2f"|format(_gd2.get('gbp_absent_amount',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <!-- Late / Early -->
+              <tr>
+                <td>Late / Early</td>
+                <td>
+                  <input type="number" step="1" min="0" name="gbp_late_minutes" id="f_gbp_late"
+                         value="{{ '%.0f'|format(_gbplt|float) if _gbplt != '' else '' }}" placeholder="0">
+                  <span class="unit-hint">mins</span>
+                </td>
+                <td id="amt_gbp_late" style="text-align:right;">
+                  {% if _gd2 and _gd2.get('gbp_late_amount',0)|float > 0 %}£{{ "%.2f"|format(_gd2.get('gbp_late_amount',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <!-- Sick Leave -->
+              <tr>
+                <td>Sick Leave</td>
+                <td>
+                  <input type="number" step="0.25" min="0" name="gbp_sick_days" id="f_gbp_sick"
+                         value="{{ '%.2f'|format(_gbpsk|float) if _gbpsk != '' else '' }}" placeholder="0">
+                  <span class="unit-hint">days</span>
+                </td>
+                <td id="amt_gbp_sick" style="text-align:right;">
+                  {% if _gd2 and _gd2.get('gbp_sick_amount',0)|float > 0 %}£{{ "%.2f"|format(_gd2.get('gbp_sick_amount',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <!-- Sanctions -->
+              <tr>
+                <td>Sanctions</td>
+                <td>
+                  <input type="number" step="0.25" min="0" name="gbp_sanction_days" id="f_gbp_sanction"
+                         value="{{ '%.2f'|format(_gbpsn|float) if _gbpsn != '' else '' }}" placeholder="0">
+                  <span class="unit-hint">days</span>
+                </td>
+                <td id="amt_gbp_sanction" style="text-align:right;">
+                  {% if _gd2 and _gd2.get('gbp_sanction_amount',0)|float > 0 %}£{{ "%.2f"|format(_gd2.get('gbp_sanction_amount',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <!-- Other Deductions -->
+              <tr>
+                <td>Other Deductions</td>
+                <td>
+                  <input type="number" step="0.01" min="0" name="gbp_other_deductions" id="f_gbp_od"
+                         value="{{ '%.2f'|format(_gbpod|float) if _gbpod != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">£</span>
+                </td>
+                <td id="amt_gbp_od" style="text-align:right;">
+                  {% if _gd2 %}£{{ "%.2f"|format(_gd2.get('gbp_other_deductions',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <!-- Loan Deduction -->
+              <tr>
+                <td>Loan Deduction</td>
+                <td>
+                  <input type="number" step="0.01" min="0" name="gbp_loan_deduction" id="f_gbp_ld"
+                         value="{{ '%.2f'|format(_gbpld|float) if _gbpld != '' else '' }}" placeholder="0.00">
+                  <span class="unit-hint">£</span>
+                </td>
+                <td id="amt_gbp_ld" style="text-align:right;">
+                  {% if _gd2 %}£{{ "%.2f"|format(_gd2.get('gbp_loan_deduction',0)|float) }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              <!-- Income Tax row (auto) -->
+              <tr>
+                <td style="color:var(--text2);">Income Tax <small>(calculated)</small></td>
+                <td style="color:var(--text2);font-size:12px;">auto</td>
+                <td id="amt_gbp_tax" style="text-align:right;color:var(--text2);">auto</td>
+              </tr>
+              <tr class="total-ded-row" style="background:rgba(30,95,168,.08)!important;border-top:2px solid #1e5fa8!important;">
+                <td colspan="2" style="color:#1e5fa8!important;">TOTAL GBP DEDUCTIONS</td>
+                <td id="amt_gbp_ded_total" style="color:#1e5fa8!important;text-align:right;">
+                  {% if _gd2 %}
+                    £{{ "%.2f"|format(
+                      (_gd2.get('gbp_loan_deduction',0)|float)
+                      + (_gd2.get('gbp_other_deductions',0)|float)
+                      + (_gd2.get('gbp_absent_amount',0)|float)
+                      + (_gd2.get('gbp_late_amount',0)|float)
+                      + (_gd2.get('gbp_sick_amount',0)|float)
+                      + (_gd2.get('gbp_sanction_amount',0)|float)
+                    ) }}
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div><!-- end expatDeductionsBlock -->
+      </div><!-- end tab-gbp-deductions -->
+
+      <div class="form-group" style="margin-top:14px;">
+        <label>Notes</label>
+        <input type="text" name="notes"
+               value="{{ saved_inputs.notes if saved_inputs else '' }}"
+               placeholder="Optional notes for this payroll entry">
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;">
+        <button type="submit" name="action" value="calculate" class="btn btn-secondary" id="btnCalc">
+          Calculate
+        </button>
+        <button type="submit" name="action" value="save" class="btn btn-primary" id="btnSave"
+                {% if not result %}disabled{% endif %}>
+          Save Payroll
+        </button>
+        <button type="submit" name="action" value="save_next" class="btn btn-primary" id="btnSaveNext"
+                {% if not result %}disabled{% endif %}
+                style="background:var(--navy,#143256);border-color:var(--navy,#143256);display:flex;align-items:center;gap:6px;">
+          Save &amp; Next →
+        </button>
+        <span style="font-size:12px;color:var(--text2);margin-left:4px;" id="nextEmpHint"></span>
+      </div>
+    </form>
+  </div>
+
+  <!-- ═══ Deduction History ═══ -->
+  <div class="card">
+    <div class="card-title">
+      Deduction History
+      {% if sel_emp %}<span style="font-size:13px;font-weight:400;color:var(--text2);"> — {{ sel_emp.name }}</span>{% endif %}
+    </div>
+    {% if history %}
+    <div style="overflow-x:auto;">
+    <table class="hist-table">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Gross</th>
+          <th>Absences</th>
+          <th>Late</th>
+          <th>Sick</th>
+          <th>Sanctions</th>
+          <th>Other</th>
+          <th>Loan</th>
+          <th>Tax</th>
+          <th>SI</th>
+          <th>Total Ded.</th>
+          <th>Net Salary</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in history %}
+        <tr>
+          <td>{{ h.month }}</td>
+          <td>{{ "%.0f"|format(h.gross or 0) }}</td>
+          <td>{{ "%.0f"|format(h.absences or 0) }}</td>
+          <td>{{ "%.0f"|format(h.lateness or 0) }}</td>
+          <td>{{ "%.0f"|format(h.sick or 0) }}</td>
+          <td>{{ "%.0f"|format(h.sanctions or 0) }}</td>
+          <td>{{ "%.0f"|format(h.other or 0) }}</td>
+          <td>{{ "%.0f"|format(h.loan or 0) }}</td>
+          <td>{{ "%.0f"|format(h.tax or 0) }}</td>
+          <td>{{ "%.0f"|format(h.si or 0) }}</td>
+          <td class="ded-col">{{ "%.0f"|format(h.total_ded or 0) }}</td>
+          <td class="net-col">{{ "%.0f"|format(h.net or 0) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% elif sel_emp %}
+    <p style="color:var(--text2);padding:20px 0;text-align:center;">No payroll history found for this employee.</p>
+    {% else %}
+    <p style="color:var(--text2);padding:20px 0;text-align:center;">Select an employee to view deduction history.</p>
+    {% endif %}
+  </div>
+</div><!-- end left -->
+
+<!-- ═══════════════════════════════════════════════════════
+     RIGHT: Payslip summary panel
+══════════════════════════════════════════════════════════ -->
+<div class="payslip-panel">
+  <div class="card" id="payslipCard">
+    <div class="card-title">
+      Payslip Summary
+      {% if sel_emp %}<span style="font-size:13px;font-weight:400;color:var(--text2);"> — {{ sel_emp.name }}</span>{% endif %}
+    </div>
+
+    {% if result %}
+    <div id="payslipContent">
+    <!-- EGP Payslip section: shown for all employees (expats have both EGP + GBP sections) -->
+    <!-- Gross Earnings Breakdown -->
+    <div class="ps-section-title">Gross Earnings</div>
+    {# Fixed earnings from profile; variable earnings from monthly saved_inputs #}
+    {% set earn = sel_emp.earnings %}
+    {% set earn_fixed = [
+        ('BasicSalary','Basic Salary'),
+        ('HousingAllowance','Housing Allowance'),
+        ('TransportAllowance','Transport Allowance'),
+        ('OtherFixedAllowances','Other Fixed Allow.'),
+    ] %}
+    {% for col, lbl in earn_fixed %}
+      {% set v = earn.get(col, 0) or 0 %}
+      {% if v %}
+      <div class="ps-row ps-indent">
+        <span class="ps-label">{{ lbl }}</span>
+        <span class="ps-val">{{ "%.2f"|format(v) }}</span>
+      </div>
+      {% endif %}
+    {% endfor %}
+    {# Variable monthly earnings from saved_inputs (or result.inputs as fallback) #}
+    {% set earn_var = [
+        ('variable_allowances','Variable Allowances'),
+        ('overtime','Overtime'),
+        ('bonuses','Bonuses'),
+        ('commissions','Commissions / Other'),
+        ('flight_allowance','Flight Allowance'),
+        ('reimbursement','Re-Imbursement'),
+        ('reallocation_allowance','Re-Allocation Allow.'),
+    ] %}
+    {% for key, lbl in earn_var %}
+      {% set v = (saved_inputs[key] if saved_inputs and saved_inputs[key] is defined else (result.inputs.get(key,0) if result else 0)) or 0 %}
+      {% if v %}
+      <div class="ps-row ps-indent">
+        <span class="ps-label">{{ lbl }}</span>
+        <span class="ps-val">{{ "%.2f"|format(v) }}</span>
+      </div>
+      {% endif %}
+    {% endfor %}
+    <div class="ps-row" style="font-weight:700;padding:6px 0 2px;">
+      <span>Total Gross</span>
+      <span id="ps_gross">{{ "%.2f"|format(result.gross) }}</span>
+    </div>
+
+    <hr class="ps-divider">
+
+    <!-- Deductions -->
+    <div class="ps-section-title">Deductions</div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Absences</span>
+      <span class="ps-val" id="ps_absences" style="{% if result.ded.absences > 0 %}color:#dc2626;font-weight:600;{% endif %}">{% if result.ded.absences > 0 %}— {% endif %}{{ "%.2f"|format(result.ded.absences) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Late / Early</span>
+      <span class="ps-val" id="ps_lateness" style="{% if result.ded.lateness > 0 %}color:#dc2626;font-weight:600;{% endif %}">{% if result.ded.lateness > 0 %}— {% endif %}{{ "%.2f"|format(result.ded.lateness) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Sick Leave</span>
+      <span class="ps-val" id="ps_sick" style="{% if result.ded.sick > 0 %}color:#dc2626;font-weight:600;{% endif %}">{% if result.ded.sick > 0 %}— {% endif %}{{ "%.2f"|format(result.ded.sick) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Sanctions</span>
+      <span class="ps-val" id="ps_sanctions" style="{% if result.ded.sanctions > 0 %}color:#dc2626;font-weight:600;{% endif %}">{% if result.ded.sanctions > 0 %}— {% endif %}{{ "%.2f"|format(result.ded.sanctions) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Other Deductions</span>
+      <span class="ps-val" id="ps_other" style="{% if result.ded.other > 0 %}color:#dc2626;font-weight:600;{% endif %}">{% if result.ded.other > 0 %}— {% endif %}{{ "%.2f"|format(result.ded.other) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Loan</span>
+      <span class="ps-val" id="ps_loan" style="{% if result.loan > 0 %}color:#dc2626;font-weight:600;{% endif %}">{% if result.loan > 0 %}— {% endif %}{{ "%.2f"|format(result.loan) }}</span>
+    </div>
+    <div class="ps-row ps-indent" style="color:var(--text2);font-size:12px;font-style:italic;">
+      <span class="ps-label">Social Insurance*</span>
+      <span class="ps-val" id="ps_si_note">used in tax calc only</span>
+    </div>
+
+    <hr class="ps-divider">
+
+    <!-- Tax Calculation -->
+    <div class="ps-section-title">Tax Calculation</div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Net before tax</span>
+      <span class="ps-val" id="ps_net_before_tax">{{ "%.2f"|format(result.tax.net_before_tax) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Personal Exemption (20,000 ÷ 12)</span>
+      <span class="ps-val">({{ "%.2f"|format(result.tax.pe_monthly) }})</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">SI for tax (min(basic,16,700) × 11%)</span>
+      <span class="ps-val" id="ps_si">{{ "%.2f"|format(result.tax.si_monthly) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label" style="font-weight:600;">Monthly tax</span>
+      <span class="ps-val" style="color:var(--accent);font-size:14px;" id="ps_tax">{{ "%.2f"|format(result.tax.monthly_tax) }}</span>
+    </div>
+
+    <!-- Total Deductions Box -->
+    <div class="ps-total-ded">
+      <span class="label">TOTAL DEDUCTIONS</span>
+      <span class="value" id="ps_total_ded">EGP {{ "%.2f"|format(result.total_ded) }}</span>
+    </div>
+
+    <!-- EXPAT GBP FULL SECTION (only for non-Egyptian employees) -->
+    {%- if sel_emp and sel_emp.get('is_expat') -%}
+    {%- set gd = result.gbp_data if (result is defined and result and result.gbp_data is defined and result.gbp_data) else {} -%}
+    {%- set _gbp_base      = gd.get('gbp_component', 0)|float if gd else 0 -%}
+    {%- set _gbp_va        = gd.get('gbp_variable_allowances',0)|float if gd else 0 -%}
+    {%- set _gbp_ov        = gd.get('gbp_overtime',0)|float if gd else 0 -%}
+    {%- set _gbp_bn        = gd.get('gbp_bonuses',0)|float if gd else 0 -%}
+    {%- set _gbp_cm        = gd.get('gbp_commissions',0)|float if gd else 0 -%}
+    {%- set _gbp_fa        = gd.get('gbp_flight_allowance',0)|float if gd else 0 -%}
+    {%- set _gbp_rb        = gd.get('gbp_reimbursement',0)|float if gd else 0 -%}
+    {%- set _gbp_ra        = gd.get('gbp_reallocation_allowance',0)|float if gd else 0 -%}
+    {%- set _gbp_oe        = gd.get('gbp_other_earnings',0)|float if gd else 0 -%}
+    {%- set _gbp_ld        = gd.get('gbp_loan_deduction',0)|float if gd else 0 -%}
+    {%- set _gbp_od        = gd.get('gbp_other_deductions',0)|float if gd else 0 -%}
+    {%- set _gbp_ab_amt    = gd.get('gbp_absent_amount',0)|float if gd else 0 -%}
+    {%- set _gbp_lt_amt    = gd.get('gbp_late_amount',0)|float if gd else 0 -%}
+    {%- set _gbp_sk_amt    = gd.get('gbp_sick_amount',0)|float if gd else 0 -%}
+    {%- set _gbp_sn_amt    = gd.get('gbp_sanction_amount',0)|float if gd else 0 -%}
+    {%- set gbp_earn_total = _gbp_base + _gbp_va + _gbp_ov + _gbp_bn + _gbp_cm + _gbp_fa + _gbp_rb + _gbp_ra + _gbp_oe -%}
+    {%- set gbp_ded_total  = _gbp_ld + _gbp_od + _gbp_ab_amt + _gbp_lt_amt + _gbp_sk_amt + _gbp_sn_amt -%}
+    {%- set gbp_net        = gbp_earn_total - gbp_ded_total -%}
+    <div style="margin:8px 0;border:1.5px solid #bdd9f5;border-radius:10px;overflow:hidden;" id="ps_gbp_section">
+      <!-- Header -->
+      <div style="background:linear-gradient(90deg,#1e5fa8,#2a7ec0);padding:8px 14px;">
+        <span style="font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.08em;">🌍 GBP Payslip Summary</span>
+      </div>
+      <div style="padding:10px 14px;background:linear-gradient(135deg,#f0f7ff,#e8f4fd);font-size:12px;">
+        <!-- Rate info -->
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;padding-bottom:4px;border-bottom:1px dashed #bdd9f5;">
+          <span style="color:#52677E;">GBP/EGP Rate</span>
+          <strong>{% if gd %}{{ "%.4f"|format(gd.rate|float) }} EGP/£{% else %}—{% endif %}</strong>
+        </div>
+        <!-- GBP Earnings -->
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1e5fa8;padding:4px 0 2px;">GBP Earnings</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Base GBP Pay (75%)</span>
+          <strong id="ps_gbp_base">£{{ "%.2f"|format(_gbp_base) }}</strong>
+        </div>
+        {%- if _gbp_va > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Variable Allowances</span>
+          <strong>£{{ "%.2f"|format(_gbp_va) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_ov > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Overtime</span>
+          <strong>£{{ "%.2f"|format(_gbp_ov) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_bn > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Bonus</span>
+          <strong id="ps_gbp_bn">£{{ "%.2f"|format(_gbp_bn) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_cm > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Commissions / Other</span>
+          <strong>£{{ "%.2f"|format(_gbp_cm) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_fa > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Flight Allowance</span>
+          <strong>£{{ "%.2f"|format(_gbp_fa) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_rb > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Re-Imbursement</span>
+          <strong>£{{ "%.2f"|format(_gbp_rb) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_ra > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Re-Allocation Allowance</span>
+          <strong>£{{ "%.2f"|format(_gbp_ra) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_oe > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Other Earnings</span>
+          <strong id="ps_gbp_oe">£{{ "%.2f"|format(_gbp_oe) }}</strong>
+        </div>
+        {%- endif -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;padding:3px 8px;background:rgba(30,95,168,.07);border-radius:4px;">
+          <span style="font-weight:600;color:#1e5fa8;">Total GBP Earnings</span>
+          <strong id="ps_gbp_earn_total" style="color:#1e5fa8;">£{{ "%.2f"|format(gbp_earn_total) }}</strong>
+        </div>
+        <!-- GBP Deductions -->
+        {%- if gbp_ded_total > 0 -%}
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#dc2626;padding:4px 0 2px;">GBP Deductions</div>
+        {%- if _gbp_ab_amt > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Absences ({{ "%.2f"|format(gd.get('gbp_absent_days',0)|float) }}d)</span>
+          <strong style="color:#dc2626;">— £{{ "%.2f"|format(_gbp_ab_amt) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_lt_amt > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Late/Early ({{ "%.0f"|format(gd.get('gbp_late_minutes',0)|float) }}min)</span>
+          <strong style="color:#dc2626;">— £{{ "%.2f"|format(_gbp_lt_amt) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_sk_amt > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Sick Leave ({{ "%.2f"|format(gd.get('gbp_sick_days',0)|float) }}d)</span>
+          <strong style="color:#dc2626;">— £{{ "%.2f"|format(_gbp_sk_amt) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_sn_amt > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Sanctions ({{ "%.2f"|format(gd.get('gbp_sanction_days',0)|float) }}d)</span>
+          <strong style="color:#dc2626;">— £{{ "%.2f"|format(_gbp_sn_amt) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_od > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Other Deductions</span>
+          <strong id="ps_gbp_od" style="color:#dc2626;">— £{{ "%.2f"|format(_gbp_od) }}</strong>
+        </div>
+        {%- endif -%}
+        {%- if _gbp_ld > 0 -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;">
+          <span style="color:#52677E;">Loan Deduction</span>
+          <strong id="ps_gbp_ld" style="color:#dc2626;">— £{{ "%.2f"|format(_gbp_ld) }}</strong>
+        </div>
+        {%- endif -%}
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;padding:3px 8px;background:rgba(220,38,38,.07);border-radius:4px;">
+          <span style="font-weight:600;color:#dc2626;">Total GBP Deductions</span>
+          <strong id="ps_gbp_ded_total" style="color:#dc2626;">£{{ "%.2f"|format(gbp_ded_total) }}</strong>
+        </div>
+        {%- endif -%}
+        <!-- GBP Tax Calculation (Egyptian tax on EGP component; GBP portion is pre-tax) -->
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#52677E;padding:6px 0 2px;border-top:1px solid #bdd9f5;margin-top:4px;">Tax Calculation (EGP component)</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;font-size:11px;">
+          <span style="color:#52677E;">Net before tax</span>
+          <span>{{ "%.2f"|format(result.tax.net_before_tax) }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;font-size:11px;">
+          <span style="color:#52677E;">Personal Exemption (20,000 ÷ 12)</span>
+          <span>({{ "%.2f"|format(result.tax.pe_monthly) }})</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px;padding-left:8px;font-size:11px;">
+          <span style="color:#52677E;">SI for tax (min(basic,16,700) × 11%)</span>
+          <span>{{ "%.2f"|format(result.tax.si_monthly) }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;padding-left:8px;font-size:12px;">
+          <span style="color:#52677E;font-weight:700;">Monthly tax</span>
+          <span style="color:#dc2626;font-weight:700;">{{ "%.2f"|format(result.tax.monthly_tax) }}</span>
+        </div>
+        <!-- GBP Net -->
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#1e5fa8;border-radius:6px;margin-top:2px;">
+          <span style="font-size:12px;font-weight:600;color:#fff;opacity:.9;">GBP NET PAY</span>
+          <strong id="ps_gbp_net" style="font-size:16px;font-weight:900;color:#fff;">£{{ "%.2f"|format(gbp_net) }}</strong>
+        </div>
+        <!-- EGP component reminder -->
+        <div style="font-size:10px;color:#52677E;margin-top:4px;text-align:center;">
+          EGP portion (25%): <strong>EGP {{ "%.2f"|format(gd.get('egp_component',0)|float) }}</strong> — included in EGP Net above
+        </div>
+      </div>
+    </div>
+    {%- endif -%}
+
+    <!-- NET TAKE HOME (EGP) — shown for all; expats also see GBP NET PAY above -->
+    <div class="ps-net">
+      <span class="label">{% if sel_emp and sel_emp.get('is_expat') %}EGP NET (25% portion){% else %}NET TAKE HOME{% endif %}</span>
+      <span class="value" id="ps_net">EGP {{ "%.2f"|format(result.net) }}</span>
+    </div>
+
+    <!-- Day rate info -->
+    <div class="ps-row" style="font-size:12px;color:var(--text2);">
+      <span>Day Rate (Basic ÷ 30)</span>
+      <span id="ps_day_rate">EGP {{ "%.2f"|format(result.ded.day_rate) }}</span>
+    </div>
+
+    <!-- Export buttons -->
+    <div class="export-btns">
+      <button type="button" class="btn btn-secondary" onclick="exportPayslipPDF()">Export PDF</button>
+      <button type="button" class="btn btn-secondary" onclick="exportPayslipExcel()">Export Excel</button>
+      <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
+    </div>
+    </div><!-- #payslipContent -->
+
+    {% else %}
+    <div class="ps-placeholder" id="payslipPlaceholder">
+      <div class="ico"><svg class="ic"><use href="#pm-file"/></svg></div>
+      <div style="font-weight:600;margin-bottom:6px;">No Calculation Yet</div>
+      <div style="font-size:13px;">Select an employee, enter deduction values,<br>then click <strong>Calculate</strong>.</div>
+    </div>
+    {% endif %}
+  </div>
+</div><!-- end right -->
+</div><!-- .pay-wrap -->
+
+</div><!-- .manual-payroll-page -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  // ─── Tab switching ────────────────────────────────────────
+  function activateTab(btn, btnClass) {
+    // Deactivate all buttons in same nav
+    document.querySelectorAll('.' + btnClass).forEach(function(b) {
+      b.classList.remove('active');
+      b.classList.remove('tab-btn-expat-active');
+      b.style.background = 'transparent';
+      b.style.color = 'var(--text1,#143256)';
+    });
+    // Hide all tab panes
+    document.querySelectorAll('.khr-tab-pane').forEach(function(p) {
+      p.style.display = 'none';
+    });
+    // Activate clicked button
+    btn.classList.add('active');
+    if (btnClass === 'tab-btn-expat') btn.classList.add('tab-btn-expat-active');
+    btn.style.background = 'var(--sky,#59CBE8)';
+    btn.style.color = '#fff';
+    var pane = document.getElementById(btn.dataset.tab);
+    if (pane) pane.style.display = 'block';
+  }
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { activateTab(btn, 'tab-btn'); });
+  });
+  document.querySelectorAll('.tab-btn-expat').forEach(function(btn) {
+    btn.addEventListener('click', function() { activateTab(btn, 'tab-btn-expat'); });
+  });
+
+  // ─── State ───────────────────────────────────────────────
+  var empData = null;    // earnings & settings loaded via API
+  var lastResult = null; // last calculate result
+
+  // ─── Employee select → load earnings ─────────────────────
+  var empSel = document.getElementById('empSel');
+  var empSearch = document.getElementById('employeeSearch');
+  var empBanner = document.getElementById('empBanner');
+  var employeePicker = document.getElementById('employeePicker');
+  var employeeOptionList = document.getElementById('employeeOptionList');
+  var employeeNoMatches = document.getElementById('employeeNoMatches');
+  var activeEmployeeOption = -1;
+
+  function normalizeEmployeeLabel(value) {
+    return (value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+  }
+
+  function getEmployeeOptions() {
+    return employeeOptionList ? Array.prototype.slice.call(employeeOptionList.querySelectorAll('.employee-option')) : [];
+  }
+
+  function openEmployeeDropdown() {
+    if (!employeeOptionList) return;
+    employeeOptionList.hidden = false;
+    if (empSearch) empSearch.setAttribute('aria-expanded', 'true');
+    filterEmployeeOptions();
+  }
+
+  function closeEmployeeDropdown() {
+    if (!employeeOptionList) return;
+    employeeOptionList.hidden = true;
+    if (empSearch) empSearch.setAttribute('aria-expanded', 'false');
+    activeEmployeeOption = -1;
+  }
+
+  function filterEmployeeOptions() {
+    var typed = normalizeEmployeeLabel(empSearch ? empSearch.value : '');
+    var options = getEmployeeOptions();
+    var visibleCount = 0;
+    activeEmployeeOption = -1;
+    options.forEach(function(option) {
+      var searchText = normalizeEmployeeLabel((option.dataset.search || '') + ' ' + option.textContent);
+      var show = !typed || searchText.indexOf(typed) !== -1;
+      option.hidden = !show;
+      option.setAttribute('aria-selected', empSel && option.dataset.eid === empSel.value ? 'true' : 'false');
+      if (show) visibleCount++;
+    });
+    if (employeeNoMatches) employeeNoMatches.hidden = visibleCount !== 0;
+  }
+
+  function chooseEmployee(option) {
+    if (!option || !empSel || !empSearch) return;
+    empSearch.value = option.textContent.replace(/\s+/g, ' ').trim();
+    empSel.value = option.dataset.eid || '';
+    empSearch.setCustomValidity('');
+    empSearch.removeAttribute('aria-invalid');
+    empSel.dispatchEvent(new Event('change', { bubbles: true }));
+    getEmployeeOptions().forEach(function(item) {
+      item.setAttribute('aria-selected', item === option ? 'true' : 'false');
+    });
+    closeEmployeeDropdown();
+  }
+
+  if (empSel && empSearch && employeePicker && employeeOptionList) {
+    // Restore the selected employee after calculate/save round-trips.
+    var selectedEmployeeOption = empSel.options[empSel.selectedIndex];
+    if (selectedEmployeeOption && selectedEmployeeOption.value) {
+      empSearch.value = selectedEmployeeOption.textContent.replace(/\s+/g, ' ').trim();
+      empSearch.setCustomValidity('');
+    }
+
+    empSearch.addEventListener('focus', openEmployeeDropdown);
+    empSearch.addEventListener('click', openEmployeeDropdown);
+    empSearch.addEventListener('input', function() {
+      // Typing starts a new search; don't leave a previous employee silently selected.
+      if (empSel.value) {
+        empSel.value = '';
+        empSel.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      empSearch.setCustomValidity('');
+      empSearch.removeAttribute('aria-invalid');
+      openEmployeeDropdown();
+    });
+
+    getEmployeeOptions().forEach(function(option) {
+      option.addEventListener('mousedown', function(event) {
+        // Keep focus until the click selects the item; prevent the input blur race.
+        event.preventDefault();
+      });
+      option.addEventListener('click', function() { chooseEmployee(option); });
+    });
+
+    empSearch.addEventListener('keydown', function(event) {
+      var options = getEmployeeOptions().filter(function(option) { return !option.hidden; });
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (employeeOptionList.hidden) openEmployeeDropdown();
+        if (!options.length) return;
+        activeEmployeeOption = Math.min(activeEmployeeOption + 1, options.length - 1);
+        options.forEach(function(option, index) { option.classList.toggle('keyboard-active', index === activeEmployeeOption); });
+        options[activeEmployeeOption].focus();
+      } else if (event.key === 'Escape') {
+        closeEmployeeDropdown();
+      } else if (event.key === 'Enter' && !employeeOptionList.hidden) {
+        if (activeEmployeeOption >= 0 && options[activeEmployeeOption]) {
+          event.preventDefault();
+          chooseEmployee(options[activeEmployeeOption]);
+        } else {
+          var exact = options.find(function(option) {
+            return normalizeEmployeeLabel(option.textContent) === normalizeEmployeeLabel(empSearch.value);
+          });
+          if (exact) { event.preventDefault(); chooseEmployee(exact); }
+        }
+      }
+    });
+
+    // When keyboard focus enters an option, arrow keys continue navigating the list.
+    employeeOptionList.addEventListener('keydown', function(event) {
+      var options = getEmployeeOptions().filter(function(option) { return !option.hidden; });
+      var current = options.indexOf(document.activeElement);
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        var delta = event.key === 'ArrowDown' ? 1 : -1;
+        var next = Math.max(0, Math.min(options.length - 1, current + delta));
+        if (options[next]) options[next].focus();
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        chooseEmployee(document.activeElement);
+      } else if (event.key === 'Escape') {
+        empSearch.focus();
+        closeEmployeeDropdown();
+      } else if (event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete') {
+        empSearch.focus();
+      }
+    });
+
+    document.addEventListener('mousedown', function(event) {
+      if (!employeePicker.contains(event.target)) closeEmployeeDropdown();
+    });
+    empSearch.addEventListener('blur', function() {
+      window.setTimeout(function() {
+        if (!employeePicker.contains(document.activeElement)) closeEmployeeDropdown();
+      }, 100);
+      if (empSel.value) {
+        var selected = empSel.options[empSel.selectedIndex];
+        if (selected) empSearch.value = selected.textContent.replace(/\s+/g, ' ').trim();
+      } else if (empSearch.value.trim()) {
+        empSearch.setCustomValidity('Choose an employee from the dropdown list.');
+        empSearch.setAttribute('aria-invalid', 'true');
+      }
+    });
+
+    document.getElementById('payForm').addEventListener('submit', function(event) {
+      if (!empSel.value) {
+        event.preventDefault();
+        empSearch.setCustomValidity('Please select an employee from the dropdown list.');
+        empSearch.setAttribute('aria-invalid', 'true');
+        empSearch.reportValidity();
+        openEmployeeDropdown();
+        return;
+      }
+      // Request 2: GBP rate is mandatory for Expat employees
+      var isExpat = empData && (empData.is_expat === true || (empData.nationality && empData.nationality.toLowerCase() !== 'egyptian'));
+      if (isExpat) {
+        var rateEl = document.getElementById('gbpRateInput');
+        var rateVal = rateEl ? parseFloat(rateEl.value) : 0;
+        if (!rateVal || rateVal <= 0) {
+          event.preventDefault();
+          if (rateEl) {
+            rateEl.style.borderColor = '#dc2626';
+            rateEl.style.boxShadow = '0 0 0 2px rgba(220,0,30,.2)';
+            rateEl.focus();
+          }
+          alert('GBP / EGP Rate is required for non-Egyptian (Expat) employees.\nPlease enter the exchange rate before calculating.');
+          return;
+        }
+      }
+    });
+    filterEmployeeOptions();
+  }
+
+  // ─── Overwrite warning modal ──────────────────────────────
+  var overwModal      = document.getElementById('overwModal');
+  var overwCancelBtn  = document.getElementById('overwCancelBtn');
+  var overwConfirmBtn = document.getElementById('overwConfirmBtn');
+  var overwEditBtn    = document.getElementById('overwEditBtn');
+  var pendingEidAfterConfirm = null; // eid to load after user confirms overwrite
+
+  function showOverwriteModal(eid) {
+    pendingEidAfterConfirm = eid;
+    var monthEl = document.getElementById('month');
+    document.getElementById('overwModalMonth').textContent = monthEl ? monthEl.value : '';
+    overwModal.classList.add('open');
+  }
+  function closeOverwriteModal() {
+    overwModal.classList.remove('open');
+    pendingEidAfterConfirm = null;
+  }
+  if (overwCancelBtn) overwCancelBtn.addEventListener('click', function() {
+    closeOverwriteModal();
+    // Revert empSel to empty
+    if (empSel) { empSel.value = ''; empSel.dispatchEvent(new Event('change',{bubbles:true})); }
+    if (empSearch) { empSearch.value = ''; }
+  });
+  if (overwEditBtn) overwEditBtn.addEventListener('click', function() {
+    // Request 3: Edit — redirect to GET ?eid=X&month=Y which pre-populates all saved values
+    var eid = pendingEidAfterConfirm;
+    var monthEl = document.getElementById('month');
+    var monthVal = monthEl ? monthEl.value : '';
+    closeOverwriteModal();
+    if (eid && monthVal) {
+      window.location.href = window.location.pathname + '?eid=' + eid + '&month=' + encodeURIComponent(monthVal);
+    }
+  });
+  if (overwConfirmBtn) overwConfirmBtn.addEventListener('click', function() {
+    var eid = pendingEidAfterConfirm;
+    closeOverwriteModal();
+    if (eid) { _doLoadEmpData(eid); }
+  });
+  // Close on backdrop click
+  if (overwModal) overwModal.addEventListener('click', function(e) {
+    if (e.target === overwModal) {
+      overwCancelBtn.click();
+    }
+  });
+
+  // ─── Employee list data for "next" hint ───────────────────
+  // Build ordered list of {eid, done} from Jinja-rendered data attrs
+  var empOrderedList = [];
+  document.querySelectorAll('.employee-option[data-eid]').forEach(function(opt) {
+    empOrderedList.push({ eid: parseInt(opt.dataset.eid), done: opt.dataset.done === 'true' });
+  });
+
+  function updateNextHint(currentEid) {
+    var hint = document.getElementById('nextEmpHint');
+    if (!hint) return;
+    var cur = parseInt(currentEid);
+    var curIdx = empOrderedList.findIndex(function(e){ return e.eid === cur; });
+    if (curIdx < 0) { hint.textContent = ''; return; }
+    // Find next undone after current, then wrap
+    var candidates = empOrderedList.slice(curIdx+1).concat(empOrderedList.slice(0, curIdx));
+    var next = candidates.find(function(e){ return !e.done; });
+    if (next) {
+      var nextOpt = document.querySelector('.employee-option[data-eid="'+next.eid+'"]');
+      var nextName = nextOpt ? nextOpt.textContent.replace(/✓ Done|Pending/g,'').trim() : '...';
+      hint.textContent = 'Next: ' + nextName;
+    } else {
+      hint.textContent = 'All employees done ✓';
+    }
+  }
+
+  // Request 2: default GBP/EGP rate from server (set once per month if any expat saved)
+  var defaultGbpRate = {{ default_gbp_rate|float }};
+
+  function _doLoadEmpData(eid) {
+    var monthEl = document.getElementById('month');
+    var monthVal = monthEl ? monthEl.value : '';
+    fetch('/api/payroll/emp-earnings?eid=' + eid + '&month=' + encodeURIComponent(monthVal))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.error) { empData = null; return; }
+        empData = d;
+        updateBanner();
+        // Request 2: auto-fill GBP rate if expat and field is currently empty
+        var isExpat = d.is_expat === true || (d.nationality && d.nationality.toLowerCase() !== 'egyptian');
+        if (isExpat) {
+          var rateEl = document.getElementById('gbpRateInput');
+          if (rateEl && (!rateEl.value || parseFloat(rateEl.value) <= 0) && defaultGbpRate > 0) {
+            rateEl.value = defaultGbpRate.toFixed(2);
+            rateEl.style.borderColor = '';
+            rateEl.style.boxShadow = '';
+            updateExpat();
+          }
+        }
+        if (!lastResult) { clearAmounts(); }
+        updateNextHint(eid);
+      })
+      .catch(function(){ empData = null; });
+  }
+
+  function loadEmpData(eid) {
+    if (!eid) { empData = null; updateBanner(); return; }
+    var monthEl = document.getElementById('month');
+    var monthVal = monthEl ? monthEl.value : '';
+    fetch('/api/payroll/emp-earnings?eid=' + eid + '&month=' + encodeURIComponent(monthVal))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.error) { empData = null; return; }
+        empData = d;
+        // Show overwrite warning if already saved
+        if (d.already_saved) {
+          showOverwriteModal(eid);
+          return; // don't update banner yet — wait for modal decision
+        }
+        updateBanner();
+        if (!lastResult) { clearAmounts(); }
+        updateNextHint(eid);
+      })
+      .catch(function(){ empData = null; });
+  }
+
+  function updateBanner() {
+    if (!empData) {
+      empBanner.classList.remove('visible');
+      var badge = document.getElementById('bannerSavedBadge');
+      if (badge) badge.style.display = 'none';
+      // Hide expat block if no employee selected
+      var expatBlock = document.getElementById('expatRateBlock');
+      if (expatBlock) expatBlock.style.display = 'none';
+      return;
+    }
+    empBanner.classList.add('visible');
+    document.getElementById('bannerName').textContent = empData.name || '';
+    var sub = (empData.emp_id || '') +
+      (empData.dept ? ' · ' + empData.dept : '') +
+      (empData.job  ? ' · ' + empData.job  : '');
+    document.getElementById('bannerSub').textContent = sub;
+    // Update gross text (find or create text node before the badge)
+    var bannerGross = document.getElementById('bannerGross');
+    if (bannerGross) {
+      // Set just the text part, keep the badge element
+      var grossText = bannerGross.querySelector('#grossText');
+      if (!grossText) {
+        grossText = document.createElement('span');
+        grossText.id = 'grossText';
+        bannerGross.insertBefore(grossText, bannerGross.firstChild);
+      }
+      grossText.innerHTML = 'Gross: <strong>EGP ' + fmt(empData.gross) + '</strong>';
+    }
+    var badge = document.getElementById('bannerSavedBadge');
+    if (badge) {
+      badge.style.display = '';
+      if (empData.already_saved) {
+        badge.className = 'banner-saved-badge saved-yes';
+        badge.textContent = '✓ Saved';
+      } else {
+        badge.className = 'banner-saved-badge saved-no';
+        badge.textContent = '⏳ Pending';
+      }
+    }
+    // Show/hide expat blocks based on NATIONALITY: non-Egyptian = Expat logic
+    var isExpat = empData.is_expat === true || (empData.nationality && empData.nationality.toLowerCase() !== 'egyptian');
+    var expatBlock = document.getElementById('expatRateBlock');
+    if (expatBlock) {
+      expatBlock.style.display = isExpat ? 'block' : 'none';
+      if (isExpat && empData.gbp_salary) {
+        updateExpat();  // Refresh preview with current GBP rate input
+      }
+    }
+    // Switch tab navs: Expat gets 4-tab nav, Egyptian gets 2-tab nav
+    var tabNavEgyptian = document.getElementById('tabNavEgyptian');
+    var tabNavExpat    = document.getElementById('tabNavExpat');
+    if (tabNavEgyptian) tabNavEgyptian.style.display = isExpat ? 'none' : 'flex';
+    if (tabNavExpat)    tabNavExpat.style.display    = isExpat ? 'flex' : 'none';
+
+    // Always start on the first (earnings) tab when employee changes
+    document.querySelectorAll('.khr-tab-pane').forEach(function(p) { p.style.display = 'none'; });
+    var firstPane = document.getElementById('tab-egp-earnings');
+    if (firstPane) firstPane.style.display = 'block';
+    // Reset all tab buttons
+    document.querySelectorAll('.tab-btn, .tab-btn-expat').forEach(function(b) {
+      b.classList.remove('active');
+      b.classList.remove('tab-btn-expat-active');
+      b.style.background = 'transparent';
+      b.style.color = 'var(--text1,#143256)';
+    });
+    // Activate the first button in the visible nav
+    var firstBtn = isExpat
+      ? document.querySelector('#tabNavExpat .tab-btn-expat')
+      : document.querySelector('#tabNavEgyptian .tab-btn');
+    if (firstBtn) {
+      firstBtn.classList.add('active');
+      if (isExpat) firstBtn.classList.add('tab-btn-expat-active');
+      firstBtn.style.background = 'var(--sky,#59CBE8)';
+      firstBtn.style.color = '#fff';
+    }
+  }
+
+  /* Issue 6: Update expat split preview */
+  function updateExpat() {
+    var rateEl = document.getElementById('gbpRateInput');
+    var previewEl = document.getElementById('expatSplitPreview');
+    if (!rateEl || !previewEl || !empData) return;
+    var rate = parseFloat(rateEl.value) || 0;
+    var gbpSal = empData.gbp_salary || 0;
+    if (gbpSal <= 0) {
+      previewEl.innerHTML = 'GBP Salary: <strong>—</strong>';
+      return;
+    }
+    var gbpComp = gbpSal * 0.75;
+    var egpComp = gbpSal * rate * 0.25;
+    previewEl.innerHTML =
+      'GBP Salary: <strong>£' + gbpSal.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</strong>' +
+      ' &nbsp;→&nbsp; 75% GBP: <strong id="splitGBP">£' + gbpComp.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</strong>' +
+      (rate > 0 ? ' &nbsp;|&nbsp; 25% EGP: <strong id="splitEGP">EGP ' + egpComp.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</strong>' : '');
+  }
+  // Wire GBP rate input
+  var gbpRateInput = document.getElementById('gbpRateInput');
+  if (gbpRateInput) {
+    gbpRateInput.addEventListener('input', function() {
+      updateExpat();
+      // Clear error styling when user types a valid rate
+      if (parseFloat(this.value) > 0) {
+        this.style.borderColor = '';
+        this.style.boxShadow = '';
+      }
+    });
+  }
+
+  // ─── Page-load tab state: if expat selected server-side, show 4-tab nav ──
+  {% if sel_emp and sel_emp.get('is_expat') %}
+  (function() {
+    // Switch to expat tabs on page load
+    var tabNavEgyptian = document.getElementById('tabNavEgyptian');
+    var tabNavExpat    = document.getElementById('tabNavExpat');
+    if (tabNavEgyptian) tabNavEgyptian.style.display = 'none';
+    if (tabNavExpat)    tabNavExpat.style.display    = 'flex';
+    // Show first pane
+    document.querySelectorAll('.khr-tab-pane').forEach(function(p) { p.style.display = 'none'; });
+    var fp = document.getElementById('tab-egp-earnings');
+    if (fp) fp.style.display = 'block';
+    // Activate first expat tab button
+    document.querySelectorAll('.tab-btn-expat').forEach(function(b, i) {
+      if (i === 0) {
+        b.classList.add('active','tab-btn-expat-active');
+        b.style.background = 'var(--sky,#59CBE8)'; b.style.color = '#fff';
+      } else {
+        b.style.background = 'transparent'; b.style.color = 'var(--text1,#143256)';
+      }
+    });
+  })();
+  {% endif %}
+
+  if (empSel) {
+    empSel.addEventListener('change', function(){
+      loadEmpData(this.value);
+    });
+    // If page loaded with employee pre-selected (after calculate/save)
+    if (empSel.value) {
+      _doLoadEmpData(empSel.value); // skip overwrite check on page-load restore
+      updateNextHint(empSel.value);
+    }
+  }
+
+  // ─── Real-time deduction amounts ──────────────────────────
+  // Update the Amount column while user types, using day_rate from empData
+  var dedInputs = ['f_absent','f_late','f_sick','f_sanction','f_other','f_loan'];
+  dedInputs.forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', recalcAmounts);
+  });
+
+  function recalcAmounts() {
+    if (!empData) return;
+    var day_rate = empData.day_rate || 0;
+    var late_div = (empData.settings && empData.settings.LatenessDivisor) ? empData.settings.LatenessDivisor : 480;
+
+    var absent   = parseFloat(document.getElementById('f_absent').value)   || 0;
+    var late     = parseFloat(document.getElementById('f_late').value)      || 0;
+    var sick     = parseFloat(document.getElementById('f_sick').value)      || 0;
+    var sanction = parseFloat(document.getElementById('f_sanction').value)  || 0;
+    var other    = parseFloat(document.getElementById('f_other').value)     || 0;
+    var loan     = parseFloat(document.getElementById('f_loan').value)      || 0;
+
+    var a_abs  = day_rate * absent;
+    var a_late = (day_rate / late_div) * late;
+    var a_sick = day_rate * sick;
+    // sanctions, other and loan are direct EGP inputs
+    var a_san   = sanction;
+    var a_other = other;
+    var a_loan  = loan;
+
+    setAmt('amt_absent',  a_abs);
+    setAmt('amt_late',    a_late);
+    setAmt('amt_sick',    a_sick);
+    setAmt('amt_sanction',a_san);
+    setAmt('amt_other',   a_other);
+    setAmt('amt_loan',    a_loan);
+    // Tax is calculated server-side; show dashes until calculated
+    document.getElementById('amt_tax').textContent = '—';
+    // Partial total (without tax/SI)
+    var partial = a_abs + a_late + a_sick + a_san + a_other + a_loan;
+    setAmt('amt_total_ded', partial, true);
+  }
+
+  function clearAmounts() {
+    ['amt_absent','amt_late','amt_sick','amt_sanction','amt_other','amt_loan','amt_tax']
+      .forEach(function(id){ var el = document.getElementById(id); if (el) el.textContent = '—'; });
+    var td = document.getElementById('amt_total_ded');
+    if (td) td.textContent = '—';
+  }
+
+  function setAmt(id, val, isTotalPartial) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = (isTotalPartial ? '≈ ' : '') + 'EGP ' + fmt(val);
+  }
+
+  function fmt(n) {
+    return parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  // ─── Enable Save button after Calculate ───────────────────
+  var payForm = document.getElementById('payForm');
+  var btnSave = document.getElementById('btnSave');
+
+  {% if result %}
+  // Already have a result — make sure Save is enabled
+  if (btnSave) { btnSave.disabled = false; }
+  {% endif %}
+
+  // ─── Export functions ──────────────────────────────────────
+  window.exportPayslipPDF = function() {
+    var eid  = document.getElementById('empSel').value;
+    var mon  = document.getElementById('month').value;
+    if (!eid || !mon) { alert('Please calculate payroll first.'); return; }
+    window.open('/payroll/export/pdf?eid=' + eid + '&month=' + mon, '_blank');
+  };
+
+  window.exportPayslipExcel = function() {
+    var eid  = document.getElementById('empSel').value;
+    var mon  = document.getElementById('month').value;
+    if (!eid || !mon) { alert('Please calculate payroll first.'); return; }
+    window.open('/payroll/export/excel?eid=' + eid + '&month=' + mon, '_blank');
+  };
+
+})();
+</script>
+{% endblock %}

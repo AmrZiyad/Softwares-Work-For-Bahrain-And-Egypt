@@ -1,0 +1,1019 @@
+{% extends "base.html" %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('employees') }}" class="btn btn-secondary btn-sm"><svg class="ic"><use href="#i-back"/></svg> Back to Employees</a>
+{% endblock %}
+
+{% block extra_head %}
+<!-- Flatpickr date picker (dd/mm/yyyy) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+<style>
+  .flatpickr-input { cursor: pointer; }
+  .req { color: var(--red); margin-left: 2px; }
+  .btn .ic { width: 15px; height: 15px; }
+
+  /* ── Layout: vertical section nav + form panes ── */
+  .emp-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 34px; align-items: start; margin-top: 6px; }
+  .emp-panes { min-width: 0; }
+
+  #empTabNav {
+    display: flex; flex-direction: column; gap: 4px; margin: 0;
+    position: sticky; top: 16px; padding: 0 26px 0 0;
+    border-bottom: none; border-right: 1px solid var(--rule);
+  }
+  #empTabNav .tab-btn {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    padding: 11px 14px; margin: 0; border: none; border-radius: var(--radius);
+    font-size: 13.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text2);
+  }
+  #empTabNav .tab-btn .ic { width: 18px; height: 18px; }
+  #empTabNav .tab-btn:hover { background: var(--row-hover); color: var(--heading); }
+  #empTabNav .tab-btn.active { background: var(--navy); color: #fff; }
+  #empTabNav .tab-btn.active .ic { color: var(--sky); }
+  [data-theme="dark"] #empTabNav .tab-btn.active { background: var(--sky); color: var(--navy); }
+  [data-theme="dark"] #empTabNav .tab-btn.active .ic { color: var(--navy); }
+
+  @media (max-width: 1000px) {
+    .emp-layout { grid-template-columns: 1fr; gap: 18px; }
+    #empTabNav { flex-direction: row; flex-wrap: wrap; position: static; padding: 0 0 12px; border-right: none; border-bottom: 1px solid var(--rule); }
+    #empTabNav .tab-btn { width: auto; }
+  }
+
+  .section-heading {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .18em;
+    color: var(--eyebrow); margin: 26px 0 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+  }
+  .section-heading:first-child { margin-top: 0; }
+  .section-heading .ic { width: 16px; height: 16px; }
+  .section-heading small { font-size: 11px; font-weight: 500; letter-spacing: .02em; text-transform: none; color: var(--text2); }
+
+  /* Document checklist */
+  .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .check-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 0;
+    background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+    cursor: pointer; transition: all .15s; text-transform: none; letter-spacing: 0;
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .check-item:hover { border-color: var(--sky); }
+  .check-item:has(input:checked) { border-color: var(--sky); background: var(--row-hover); }
+  .check-item input[type=checkbox] { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--navy); flex-shrink: 0; }
+  .check-item .ic { width: 18px; height: 18px; color: var(--eyebrow); }
+  [data-theme="dark"] .check-item input[type=checkbox] { accent-color: var(--sky); }
+  .check-item span { display: flex; align-items: center; gap: 10px; }
+
+  /* Edit banner */
+  .edit-banner {
+    position: sticky; top: 12px; z-index: 49; margin-bottom: 18px;
+    background: var(--navy); color: #fff; padding: 12px 20px; border-radius: var(--radius);
+    display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 6px 18px rgba(20,50,86,.25); border-left: 5px solid var(--sky);
+  }
+  [data-theme="dark"] .edit-banner { background: #1B3F69; }
+  .edit-banner .ic { color: var(--sky); width: 20px; height: 20px; }
+  .edit-banner .muted { opacity: .75; font-weight: 400; }
+  .edit-banner .right { margin-left: auto; opacity: .8; font-size: 12px; font-weight: 500; }
+
+  /* Total salary */
+  .total-box {
+    margin-top: 20px; padding: 18px 22px; background: var(--row-hover);
+    border: 1px solid var(--sky); border-left-width: 5px; border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .total-box .lbl { font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--heading); display: flex; align-items: center; gap: 10px; }
+  #totalSalaryDisplay { font-family: var(--font-head); font-size: 34px; font-weight: 700; color: var(--stat); line-height: 1; }
+
+  .readonly-field { background: var(--bg); color: var(--text2); cursor: not-allowed; }
+  .hint { font-size: 12px; color: var(--text2); margin-top: 8px; display: flex; gap: 8px; align-items: flex-start; }
+  .hint .ic { width: 15px; height: 15px; margin-top: 2px; color: var(--eyebrow); }
+
+  /* Sticky save bar */
+  .sticky-footer {
+    position: sticky; bottom: 16px; z-index: 10; margin-top: 22px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 18px; display: flex; gap: 10px; align-items: center;
+    box-shadow: 0 8px 24px rgba(20,50,86,.18);
+  }
+
+  /* ── Validation error popup ── */
+  #validationPopup {
+    display: none; position: fixed; top: 20px; right: 20px; z-index: 9999;
+    background: #DC001E; color: #fff; border-radius: var(--radius); padding: 16px 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.4); max-width: 380px; min-width: 270px;
+    font-size: 13.5px; line-height: 1.5; border: 2px solid #fff;
+    animation: slideIn .25s ease;
+  }
+  #validationPopup.show { display: block; }
+  #validationPopup .popup-title { font-weight: 700; font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  #validationPopup .popup-title .ic { width: 20px; height: 20px; }
+  #validationPopup ul { margin: 0; padding-left: 18px; }
+  #validationPopup ul li { margin-bottom: 3px; }
+  #validationPopup .popup-close {
+    float: right; background: none; border: none; color: #fff; cursor: pointer; line-height: 1; margin-left: 8px; padding: 2px;
+  }
+  #validationPopup .popup-close .ic { width: 18px; height: 18px; }
+  .field-error { border-color: #DC001E !important; box-shadow: 0 0 0 3px rgba(220,0,30,.20) !important; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Icons used only on this page -->
+<svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></symbol>
+  <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M14 6l4 4"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></symbol>
+  <symbol id="i-idcard" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.5 1.7-2 3-2s2.5.5 3 2M15 10h3M15 14h3"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 11h6M9 15h6"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+  <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/></symbol>
+  <symbol id="i-bldg" viewBox="0 0 24 24"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6M9 11h.01M15 11h.01"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5zM5 9v9M10 9v9M14 9v9M19 9v9M3 21h18"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-35 12 12)"/><path d="M9.5 9.5l5 5"/></symbol>
+</svg>
+
+<form method="POST" id="empForm" novalidate>
+{% if emp.eid %}
+<div id="empNameBanner" class="edit-banner">
+  <svg class="ic"><use href="#i-edit"/></svg>
+  <span>Editing: {{ emp.first_name }} {{ emp.family_name }}</span>
+  <span class="muted">· {{ emp.emp_id or '' }}</span>
+  <span class="right">{{ emp.job or '' }}{% if emp.dept %} · {{ emp.dept }}{% endif %}</span>
+</div>
+{% endif %}
+<div class="card" style="margin-bottom:0;">
+  <div class="card-title" style="margin-bottom:12px;">{{ title }}</div>
+
+  <div class="emp-layout">
+
+  <!-- Tab nav -->
+  <div class="tab-nav" id="empTabNav">
+    <button type="button" class="tab-btn active" onclick="empSwitchTab('tab-personal',this)"><svg class="ic"><use href="#i-user"/></svg>Personal</button>
+    <button type="button" class="tab-btn" onclick="empSwitchTab('tab-employment',this)"><svg class="ic"><use href="#i-brief"/></svg>Employment</button>
+    <button type="button" class="tab-btn" onclick="empSwitchTab('tab-salary',this)"><svg class="ic"><use href="#i-pay"/></svg>Salary</button>
+    <button type="button" class="tab-btn" onclick="empSwitchTab('tab-tax',this)"><svg class="ic"><use href="#i-receipt"/></svg>Tax</button>
+    <button type="button" class="tab-btn" onclick="empSwitchTab('tab-insurance',this)"><svg class="ic"><use href="#i-shield"/></svg>Insurance</button>
+    <button type="button" class="tab-btn" onclick="empSwitchTab('tab-documents',this)"><svg class="ic"><use href="#i-folder"/></svg>Documents</button>
+  </div>
+
+  <div class="emp-panes">
+
+  <!-- ═══════════ TAB 1: PERSONAL ═══════════ -->
+  <div id="tab-personal" class="tab-pane active">
+    <div class="section-heading">Basic Info</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Employee ID / Badge No. <span class="req">*</span></label>
+        <input type="text" name="emp_id" value="{{ emp.emp_id or '' }}" required placeholder="e.g. KS1001">
+      </div>
+      <div class="form-group">
+        <label>First Name (English) <span class="req">*</span></label>
+        <input type="text" name="first_name" value="{{ emp.first_name or '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Second Name</label>
+        <input type="text" name="second_name" value="{{ emp.second_name or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Third Name</label>
+        <input type="text" name="third_name" value="{{ emp.third_name or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Family Name <span class="req">*</span></label>
+        <input type="text" name="family_name" value="{{ emp.family_name or '' }}" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Full Name (Arabic)</label>
+        <input type="text" name="full_name_arabic" value="{{ emp.full_name_arabic or '' }}" dir="auto" placeholder="الاسم كامل بالعربية">
+      </div>
+      <div class="form-group">
+        <label>Date of Birth <span class="req">*</span></label>
+        <input type="text" name="dob" value="{{ emp.dob or '' }}" required
+               class="datepicker" placeholder="dd/mm/yyyy" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Gender <span class="req">*</span></label>
+        <select name="gender" required>
+          <option value="">Choose the option</option>
+          <option value="Male"   {% if emp.gender=='Male' %}selected{% endif %}>Male</option>
+          <option value="Female" {% if emp.gender=='Female' %}selected{% endif %}>Female</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Marital Status <span class="req">*</span></label>
+        <select name="marital_status" required>
+          <option value="">Choose the option</option>
+          {% for ms in ['Single','Married','Divorced','Widowed'] %}
+          <option value="{{ ms }}" {% if emp.marital_status==ms %}selected{% endif %}>{{ ms }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="section-heading">Contact & Identity</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nationality <span class="req">*</span></label>
+        <select name="nationality" required>
+          <option value="">Choose the option</option>
+          {% for nat in [
+            'Egyptian','Saudi Arabian','Emirati','Kuwaiti','Qatari','Bahraini','Omani','Jordanian',
+            'Lebanese','Syrian','Iraqi','Palestinian','Yemeni','Libyan','Tunisian','Algerian',
+            'Moroccan','Sudanese','British','American','Canadian','Australian','French','German',
+            'Italian','Spanish','Dutch','Swedish','Norwegian','Danish','Finnish','Swiss',
+            'South African','Indian','Pakistani','Bangladeshi','Filipino','Indonesian','Malaysian',
+            'Chinese','Japanese','Korean','Turkish','Iranian','Other'
+          ] %}
+          <option value="{{ nat }}" {% if emp.nationality==nat %}selected{% endif %}>{{ nat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>National ID / Passport Number <span class="req">*</span></label>
+        <input type="text" name="national_id" value="{{ emp.national_id or '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Phone <span class="req">*</span></label>
+        <input type="tel" name="phone" value="{{ emp.phone or '' }}" required
+               inputmode="numeric" pattern="[0-9+\-\s()]{7,20}"
+               title="Numbers only (7–20 digits, + - spaces allowed)" placeholder="+20 1xx xxxx xxxx">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Personal Email <span class="req">*</span></label>
+        <input type="email" name="email" value="{{ emp.email or '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>School Email</label>
+        <input type="email" name="school_email" value="{{ emp.school_email or '' }}" placeholder="firstname.lastname@kings.edu.eg">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Address</label>
+      <textarea name="address" rows="2" style="resize:vertical;">{{ emp.address or '' }}</textarea>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 2: EMPLOYMENT ═══════════ -->
+  <div id="tab-employment" class="tab-pane">
+    <div class="section-heading">Job Details</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Department <span class="req">*</span></label>
+        <select name="dept" required>
+          <option value="">Choose Department</option>
+          {% for d in [
+            'Administration','Finance','Human Resources','IT','Operations',
+            'Primary School','Secondary School','Early Years','Foundation Stage',
+            'Science','Mathematics','English','Arabic','Physical Education',
+            'Arts','Music','Library','Student Services','Marketing','Maintenance'
+          ] %}
+          <option value="{{ d }}" {% if emp.dept==d %}selected{% endif %}>{{ d }}</option>
+          {% endfor %}
+          {% if emp.dept and emp.dept not in ['Administration','Finance','Human Resources','IT','Operations','Primary School','Secondary School','Early Years','Foundation Stage','Science','Mathematics','English','Arabic','Physical Education','Arts','Music','Library','Student Services','Marketing','Maintenance'] %}
+          <option value="{{ emp.dept }}" selected>{{ emp.dept }}</option>
+          {% endif %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Job Title <span class="req">*</span></label>
+        <input type="text" name="job" value="{{ emp.job or '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Employment Type <span class="req">*</span></label>
+        <select name="employment_type" required>
+          <option value="">Choose the option</option>
+          {% for et in ['Full Time','Part Time','Contract','Temporary','Intern'] %}
+          <option value="{{ et }}" {% if emp.employment_type==et %}selected{% endif %}>{{ et }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Work Schedule <span class="req">*</span></label>
+        <select name="schedule" required>
+          <option value="">Choose the option</option>
+          {% for ws in ['Sunday to Thursday','Monday to Friday','Full Time','Part Time','Shift','Flexible'] %}
+          <option value="{{ ws }}" {% if emp.schedule==ws %}selected{% endif %}>{{ ws }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Branch / Location <span class="req">*</span></label>
+        <select name="branch_location" required>
+          <option value="">Choose the option</option>
+          {% for bl in ['Main Campus','Branch 1','Branch 2','Administrative Office'] %}
+          <option value="{{ bl }}" {% if emp.branch_location==bl %}selected{% endif %}>{{ bl }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Reporting Manager</label>
+        <input type="text" name="reporting_manager" value="{{ emp.reporting_manager or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Working Hours / Day</label>
+        <select name="working_hours_per_day">
+          <option value="">Choose the option</option>
+          {% for h in [4, 5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 10, 11, 12] %}
+          <option value="{{ h }}" {% if (emp.working_hours_per_day|string)==(h|string) %}selected{% endif %}>{{ h }} hrs/day</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="section-heading">Dates & Status</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date of Joining <span class="req">*</span></label>
+        <input type="text" name="join_date" id="join_date" value="{{ emp.join_date or '' }}" required
+               class="datepicker" placeholder="dd/mm/yyyy" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Probation Period (months)</label>
+        <input type="number" min="0" max="24" name="probation_period" value="{{ emp.probation_period or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Confirmation Date</label>
+        <input type="text" name="confirmation_date" value="{{ emp.confirmation_date or '' }}"
+               class="datepicker" placeholder="dd/mm/yyyy" autocomplete="off">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Contract Start Date <span class="req">*</span></label>
+        <input type="text" name="contract_start_date" value="{{ emp.contract_start_date or '' }}"
+               class="datepicker" placeholder="dd/mm/yyyy" autocomplete="off" required>
+      </div>
+      <div class="form-group">
+        <label>Contract End Date <span id="contract_end_req" style="color:var(--red);display:none;">*</span></label>
+        <input type="text" name="contract_end_date" id="contract_end_date" value="{{ emp.contract_end_date or '' }}"
+               class="datepicker" placeholder="dd/mm/yyyy" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Employment Status <span class="req">*</span></label>
+        <select name="status" id="emp_status" required>
+          {% for s in ['Active','Inactive','Resigned','Terminated'] %}
+          <option value="{{ s }}" {% if emp.status==s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Resign / Last Working Date <span id="resign_req" style="color:var(--red);">*</span></label>
+        <input type="text" name="resign_date" id="resign_date" value="{{ emp.resign_date or '' }}"
+               class="datepicker" placeholder="dd/mm/yyyy" autocomplete="off"
+               data-conditional-required="emp_status:Inactive,Resigned,Terminated">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 3: SALARY ═══════════ -->
+  <div id="tab-salary" class="tab-pane">
+    <div class="section-heading">Employee &amp; Salary Type</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Employee Type <span class="req">*</span></label>
+        <select name="employee_type" id="employeeTypeSelect" onchange="toggleExpat(this.value)">
+          {% for et in ['Egyptian','Expat'] %}
+          <option value="{{ et }}" {% if (emp.employee_type or 'Egyptian')==et %}selected{% endif %}>{{ et }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Salary Type <span class="req">*</span></label>
+        <select name="salary_type" required>
+          <option value="">Choose the option</option>
+          {% for st in ['Monthly','Daily','Hourly'] %}
+          <option value="{{ st }}" {% if (emp.salary_type or 'Monthly')==st %}selected{% endif %}>{{ st }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Expat GBP salary row — shown only when Employee Type = Expat -->
+    <div id="expatSalaryRow" style="display:{% if emp.employee_type=='Expat' %}block{% else %}none{% endif %};">
+      <div style="margin-bottom:8px;padding:10px 14px;background:linear-gradient(135deg,#f0f7ff,#e8f4fd);border:1px solid #bdd9f5;border-radius:8px;">
+        <div style="font-size:12px;font-weight:600;color:#1e5fa8;margin-bottom:6px;">
+          🌍 Expat Salary Split: <strong>25% in EGP</strong> + <strong>75% in GBP</strong>
+        </div>
+        <div style="font-size:11px;color:#555;">
+          Enter the total GBP salary. The EGP/GBP split is computed monthly in Manual Payroll using the current exchange rate.
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>GBP Salary (£) <span class="req">*</span></label>
+          <input type="number" step="0.01" min="0" name="gbp_salary" id="gbpSalaryInput"
+                 value="{{ emp.gbp_salary or '' }}" class="salary-component" placeholder="e.g. 3000.00">
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;padding-top:22px;">
+          <div style="font-size:12px;color:var(--text2);background:var(--bg2,#f5f7fa);padding:8px 12px;border-radius:6px;width:100%;">
+            <strong>EGP Component (25%):</strong> Calculated per payroll run<br>
+            <strong>GBP Component (75%):</strong> <span id="gbpComponentPreview">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-heading">Salary Structure (EGP)</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label id="basicSalaryLabel">Basic Salary (EGP) <span class="req">*</span></label>
+        <input type="number" step="0.01" min="0" name="basic" value="{{ emp.basic or '' }}" required class="salary-component">
+      </div>
+      <div class="form-group">
+        <label>Housing Allowance</label>
+        <input type="number" step="0.01" min="0" name="housing" value="{{ emp.housing or '' }}" class="salary-component">
+      </div>
+      <div class="form-group">
+        <label>Transport Allowance</label>
+        <input type="number" step="0.01" min="0" name="transport" value="{{ emp.transport or '' }}" class="salary-component">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Other Fixed Allowances</label>
+        <input type="number" step="0.01" min="0" name="other_fixed" value="{{ emp.other_fixed or '' }}" class="salary-component">
+      </div>
+      <div class="form-group">
+        {# Flight Allowance moved to Monthly Payroll Earnings tab #}
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--text2);margin:6px 0 10px;padding:8px 12px;background:var(--bg2,#f5f7fa);border-radius:6px;border-left:3px solid var(--sky,#59CBE8);">
+      <strong>Note:</strong> Variable monthly earnings (Overtime, Bonuses, Commissions, Variable Allowances, Flight Allowance, Re-Imbursement, Re-Allocation Allowance) are entered per month in the <strong>Manual Payroll</strong> page under the <strong>Earnings</strong> tab.
+    </div>
+
+    <!-- Live Total Salary display -->
+    <div class="total-box">
+      <span class="lbl"><svg class="ic"><use href="#i-pay"/></svg>Fixed Base Salary (EGP)</span>
+      <span id="totalSalaryDisplay">0.00</span>
+    </div>
+
+    <div class="section-heading">Bank Details</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Bank Name</label>
+        <input type="text" name="bank_name" value="{{ emp.bank_name or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Bank Account Number</label>
+        <input type="text" name="bank_account_number" value="{{ emp.bank_account_number or '' }}"
+               inputmode="numeric" pattern="[0-9\-]{5,30}" title="Numbers only">
+      </div>
+      <div class="form-group">
+        <label>IBAN</label>
+        <input type="text" name="iban" value="{{ emp.iban or '' }}" placeholder="EG00...">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 4: TAX ═══════════ -->
+  <div id="tab-tax" class="tab-pane">
+    <div class="section-heading">Tax Details</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Taxable Employee</label>
+        <select name="taxable_employee">
+          <option value="1" {% if emp.taxable_employee != False %}selected{% endif %}>Yes</option>
+          <option value="0" {% if emp.taxable_employee == False %}selected{% endif %}>No</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tax Registration ID</label>
+        <input type="text" name="tax_registration_id" value="{{ emp.tax_registration_id or '' }}"
+               inputmode="numeric" pattern="[0-9]{5,20}" title="Numbers only (5–20 digits)" placeholder="e.g. 123456789">
+      </div>
+      <div class="form-group">
+        <label>Tax Treatment</label>
+        <select name="tax_treatment">
+          <option value="">Choose the option</option>
+          {% for tt in ['Standard','Exempt','Reduced','Non-Resident'] %}
+          <option value="{{ tt }}" {% if emp.tax_treatment==tt %}selected{% endif %}>{{ tt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tax Status</label>
+        <select name="tax_status">
+          <option value="">Choose the option</option>
+          {% for ts in ['Single','Married','Married with dependents'] %}
+          <option value="{{ ts }}" {% if emp.tax_status==ts %}selected{% endif %}>{{ ts }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Taxable Benefits (EGP)</label>
+        <input type="number" step="0.01" min="0" name="taxable_benefits" value="{{ emp.taxable_benefits or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Other Tax Exemptions (EGP)</label>
+        <input type="number" step="0.01" min="0" name="other_tax_exemptions" value="{{ emp.other_tax_exemptions or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Annual Tax Adjustment (EGP)</label>
+        <input type="number" step="0.01" name="annual_tax_adjustment" value="{{ emp.annual_tax_adjustment or '' }}">
+      </div>
+    </div>
+
+    <!-- ── Auto-calculated read-only tax summary ── -->
+    <div class="section-heading"><svg class="ic"><use href="#i-chart"/></svg>Computed Tax Summary
+      <small>(auto-calculated from Salary tab — read only)</small>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Taxable Salary (Monthly, EGP)</label>
+        <input type="text" id="calc_taxable_salary" readonly class="readonly-field"
+               value="{{ '%.2f'|format(emp.calc_taxable_salary) if emp.get('calc_taxable_salary') is not none else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Monthly Income Tax (EGP)</label>
+        <input type="text" id="calc_monthly_tax" readonly class="readonly-field"
+               value="{{ '%.2f'|format(emp.calc_monthly_tax) if emp.get('calc_monthly_tax') is not none else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Employee SI Deduction (EGP/mo)</label>
+        <input type="text" id="calc_si_deduction" readonly class="readonly-field"
+               value="{{ '%.2f'|format(emp.calc_si_deduction) if emp.get('calc_si_deduction') is not none else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Annual Tax (EGP)</label>
+        <input type="text" id="calc_annual_tax" readonly class="readonly-field"
+               value="{{ '%.2f'|format(emp.calc_annual_tax) if emp.get('calc_annual_tax') is not none else '' }}">
+      </div>
+    </div>
+    <p class="hint">
+      <svg class="ic"><use href="#i-info"/></svg>
+      <span>Values update live when you edit the Salary tab. SI = min(Basic, 16,700) × 11%. Tax follows Egypt 2024 brackets. Save to persist.</span>
+    </p>
+  </div>
+
+  <!-- ═══════════ TAB 5: INSURANCE ═══════════ -->
+  <div id="tab-insurance" class="tab-pane">
+    <div class="section-heading">Social Insurance</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Insurance Number</label>
+        <input type="text" name="insurance_number" value="{{ emp.insurance_number or '' }}"
+               inputmode="numeric" pattern="[0-9]{5,20}" title="Numbers only (5–20 digits)" placeholder="e.g. 12345678">
+      </div>
+      <div class="form-group">
+        <label>Insurance Office</label>
+        <input type="text" name="insurance_office" value="{{ emp.insurance_office or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Insurance Status</label>
+        <select name="insurance_status">
+          <option value="">Choose the option</option>
+          {% for is_ in ['Active','Suspended','Terminated'] %}
+          <option value="{{ is_ }}" {% if emp.insurance_status==is_ %}selected{% endif %}>{{ is_ }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Insurance Category</label>
+        <select name="insurance_category">
+          <option value="">Choose the option</option>
+          {% for ic in ['Category 1','Category 2','Category 3','Exempt'] %}
+          <option value="{{ ic }}" {% if emp.insurance_category==ic %}selected{% endif %}>{{ ic }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Insurance Start Date</label>
+        <input type="text" name="insurance_start_date" value="{{ emp.insurance_start_date or '' }}"
+               class="datepicker" placeholder="dd/mm/yyyy" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Insurance Wage (EGP)</label>
+        <input type="number" step="0.01" min="0" name="insurance_wage" value="{{ emp.insurance_wage or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Previous Insurance Period (months)</label>
+        <input type="number" step="0.01" min="0" name="previous_insurance_period" value="{{ emp.previous_insurance_period or '' }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Previous Employer</label>
+        <input type="text" name="previous_employer" value="{{ emp.previous_employer or '' }}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Previous Pension Info</label>
+      <textarea name="previous_pension_info" rows="2" style="resize:vertical;">{{ emp.previous_pension_info or '' }}</textarea>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 6: DOCUMENTS ═══════════ -->
+  <div id="tab-documents" class="tab-pane">
+    <div class="section-heading">Documents Received</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px;">Check the box for each document that has been received and filed.</p>
+    <div class="check-grid">
+      <label class="check-item">
+        <input type="checkbox" name="doc_national_id" value="1" {% if emp.doc_national_id %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-idcard"/></svg>National ID</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" name="doc_birth_cert" value="1" {% if emp.doc_birth_cert %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-clip"/></svg>Birth Certificate</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" name="doc_employment_contract" value="1" {% if emp.doc_employment_contract %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-file"/></svg>Employment Contract</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" name="doc_educational_cert" value="1" {% if emp.doc_educational_cert %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-cap"/></svg>Educational Certificate</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" name="doc_syndicate" value="1" {% if emp.doc_syndicate %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-bldg"/></svg>Syndicate Card</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" name="doc_medical_form_111" value="1" {% if emp.doc_medical_form_111 %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-pulse"/></svg>Medical Form 111</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" name="doc_social_insurance" value="1" {% if emp.doc_social_insurance %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-shield"/></svg>Social Insurance Form</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" name="doc_bank_document" value="1" {% if emp.doc_bank_document %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-bank"/></svg>Bank Document</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" name="medical_fitness_cert" value="1" {% if emp.medical_fitness_cert %}checked{% endif %}>
+        <span><svg class="ic"><use href="#i-pill"/></svg>Medical Fitness Certificate</span>
+      </label>
+    </div>
+  </div>
+
+  </div><!-- end emp-panes -->
+  </div><!-- end emp-layout -->
+
+</div><!-- end card -->
+
+<!-- Validation error popup -->
+<div id="validationPopup">
+  <button type="button" class="popup-close" onclick="closePopup()" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+  <div class="popup-title"><svg class="ic"><use href="#i-warn"/></svg>Please fix the following</div>
+  <ul id="popupErrors"></ul>
+</div>
+
+<!-- Sticky save footer -->
+<div class="sticky-footer">
+  <button type="submit" class="btn btn-primary"><svg class="ic"><use href="#i-save"/></svg> Save Employee</button>
+  <a href="{{ url_for('employees') }}" class="btn btn-secondary">Cancel</a>
+  <span style="font-size:12px;color:var(--text2);margin-left:8px;">
+    <span class="req">*</span> Required fields
+  </span>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+<script>
+/* ── Expat Employee Type toggle ── */
+function toggleExpat(val) {
+  var row = document.getElementById('expatSalaryRow');
+  var gbpInput = document.getElementById('gbpSalaryInput');
+  if (val === 'Expat') {
+    row.style.display = 'block';
+    if (gbpInput) gbpInput.required = true;
+  } else {
+    row.style.display = 'none';
+    if (gbpInput) { gbpInput.required = false; gbpInput.value = ''; }
+    document.getElementById('gbpComponentPreview').textContent = '—';
+    calcTotal();
+  }
+}
+/* GBP component live preview */
+var gbpInput = document.getElementById('gbpSalaryInput');
+if (gbpInput) {
+  gbpInput.addEventListener('input', function() {
+    var gbp = parseFloat(this.value) || 0;
+    var comp = gbp * 0.75;
+    document.getElementById('gbpComponentPreview').textContent =
+      comp > 0 ? '£' + comp.toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+    calcTotal();
+  });
+  // Set preview on load for edit mode
+  if (gbpInput.value) {
+    var comp = (parseFloat(gbpInput.value) || 0) * 0.75;
+    var prev = document.getElementById('gbpComponentPreview');
+    if (prev && comp > 0) prev.textContent = '£' + comp.toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+}
+
+/* ── Live Total Salary calculator (EGP fields only) ── */
+function calcTotal() {
+  let total = 0;
+  document.querySelectorAll('.salary-component').forEach(function(el) {
+    // Exclude GBP salary input from EGP total
+    if (el.id !== 'gbpSalaryInput') total += parseFloat(el.value) || 0;
+  });
+  const disp = document.getElementById('totalSalaryDisplay');
+  if (disp) disp.textContent = total.toLocaleString('en-EG', {minimumFractionDigits:2, maximumFractionDigits:2});
+  calcTaxSummary(); // update tax whenever salary changes
+}
+document.querySelectorAll('.salary-component').forEach(function(el) {
+  el.addEventListener('input', calcTotal);
+});
+calcTotal(); // run on load for edit mode
+
+/* ── Live Egypt Tax Summary ── */
+function calcTaxSummary() {
+  // Collect salary components
+  var basic = parseFloat(document.querySelector('[name="basic"]')?.value) || 0;
+  var gross = 0;
+  document.querySelectorAll('.salary-component').forEach(function(el) {
+    gross += parseFloat(el.value) || 0;
+  });
+
+  // SI: min(basic, 16700) × 11%
+  var si_base    = Math.min(basic, 16700);
+  var si_monthly = si_base * 0.11;
+
+  // Personal exemption: 20,000 / 12
+  var pe_monthly = 20000 / 12;
+
+  // Taxable monthly = gross − si − pe
+  var taxable_monthly = Math.max(0, gross - si_monthly - pe_monthly);
+  var taxable_annual  = taxable_monthly * 12;
+
+  // Egypt 2024 brackets
+  var brackets = [
+    [40000,  0.00],
+    [15000,  0.10],
+    [15000,  0.15],
+    [130000, 0.20],
+    [200000, 0.225],
+    [null,   0.25],
+  ];
+  var remaining = taxable_annual, annual_tax = 0;
+  for (var i = 0; i < brackets.length; i++) {
+    if (remaining <= 0) break;
+    var band = brackets[i][0], rate = brackets[i][1];
+    var chunk = band ? Math.min(remaining, band) : remaining;
+    annual_tax += chunk * rate;
+    remaining  -= chunk;
+  }
+  var monthly_tax = annual_tax / 12;
+
+  // Update display fields
+  function fmt(v) { return isNaN(v) ? '' : v.toFixed(2); }
+  var el_ts  = document.getElementById('calc_taxable_salary');
+  var el_mt  = document.getElementById('calc_monthly_tax');
+  var el_si  = document.getElementById('calc_si_deduction');
+  var el_at  = document.getElementById('calc_annual_tax');
+  if (el_ts) el_ts.value = fmt(taxable_monthly);
+  if (el_mt) el_mt.value = fmt(monthly_tax);
+  if (el_si) el_si.value = fmt(si_monthly);
+  if (el_at) el_at.value = fmt(annual_tax);
+}
+calcTaxSummary(); // run on load
+
+/* ── Initialise all date pickers as dd/mm/yyyy ── */
+document.querySelectorAll('.datepicker').forEach(function(el) {
+  flatpickr(el, {
+    dateFormat: 'd/m/Y',   // display format
+    allowInput: true,      // user can also type manually
+    locale: { firstDayOfWeek: 0 }
+  });
+});
+
+/* ── Contract End / Status bidirectional validation ── */
+const statusSel   = document.getElementById('emp_status');
+const contractEnd = document.getElementById('contract_end_date');
+const resignDate  = document.getElementById('resign_date');
+const contractReq = document.getElementById('contract_end_req');
+const resignReq   = document.getElementById('resign_req');
+
+function syncStatusRules() {
+  const inactive = ['Inactive','Resigned','Terminated'].includes(statusSel.value);
+  // Contract End Date mandatory when inactive/resigned/terminated
+  contractEnd.required = inactive;
+  contractReq.style.display = inactive ? 'inline' : 'none';
+  // Resign / Last Working Date mandatory when inactive/resigned/terminated
+  if (resignDate) resignDate.required = inactive;
+  resignReq.style.display = inactive ? 'inline' : 'none';
+
+  // When switching BACK to Active → clear the resign and contract end dates
+  if (!inactive) {
+    if (resignDate) { resignDate.value = ''; if (resignDate._flatpickr) resignDate._flatpickr.clear(); }
+    if (contractEnd) { contractEnd.value = ''; if (contractEnd._flatpickr) contractEnd._flatpickr.clear(); }
+  }
+}
+
+function onContractEndChange() {
+  // If contract end filled → force status to Inactive
+  if (contractEnd.value) {
+    if (!['Inactive','Resigned','Terminated'].includes(statusSel.value)) {
+      statusSel.value = 'Inactive';
+    }
+    syncStatusRules();
+  }
+}
+
+if (statusSel) { statusSel.addEventListener('change', syncStatusRules); syncStatusRules(); }
+if (contractEnd) { contractEnd.addEventListener('change', onContractEndChange); }
+
+/* ── Employee form tab switcher (self-contained, no base.html dependency) ── */
+const EMP_TABS = ['tab-personal','tab-employment','tab-salary','tab-tax','tab-insurance','tab-documents'];
+
+function empSwitchTab(tabId, btn) {
+  // Hide all panes
+  EMP_TABS.forEach(function(t) {
+    const p = document.getElementById(t);
+    if (p) p.classList.remove('active');
+  });
+  // Deactivate all tab buttons
+  document.querySelectorAll('#empTabNav .tab-btn').forEach(function(b) {
+    b.classList.remove('active');
+  });
+  // Show selected pane and activate button
+  const pane = document.getElementById(tabId);
+  if (pane) pane.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+/* ── Validation popup helpers ── */
+function showPopup(errors) {
+  const popup = document.getElementById('validationPopup');
+  const list  = document.getElementById('popupErrors');
+  list.innerHTML = '';
+  errors.forEach(function(msg) {
+    const li = document.createElement('li');
+    li.textContent = msg;
+    list.appendChild(li);
+  });
+  popup.classList.add('show');
+  // Auto-dismiss after 7 seconds
+  clearTimeout(popup._timer);
+  popup._timer = setTimeout(closePopup, 7000);
+}
+
+function closePopup() {
+  document.getElementById('validationPopup').classList.remove('show');
+}
+
+/* ── Submit handler: validate all tabs, show popup, switch to first error tab ── */
+document.getElementById('empForm').addEventListener('submit', function(e) {
+  // Clear previous error highlights
+  document.querySelectorAll('.field-error').forEach(function(el) {
+    el.classList.remove('field-error');
+  });
+
+  const tabBtns  = document.querySelectorAll('#empTabNav .tab-btn');
+  const TAB_LABELS = ['Personal','Employment','Salary','Tax','Insurance','Documents'];
+  const errors   = [];
+  let firstErrorTab = -1;
+  let firstInvalidField = null;
+
+  // Evaluate conditional-required fields before looping tabs
+  // Fields with data-conditional-required="fieldId:val1,val2" are required
+  // when the named field's current value is in the comma-separated list
+  document.querySelectorAll('[data-conditional-required]').forEach(function(field) {
+    var rule = field.getAttribute('data-conditional-required').split(':');
+    var watchId = rule[0];
+    var triggerVals = rule[1] ? rule[1].split(',') : [];
+    var watchEl = document.getElementById(watchId);
+    if (!watchEl) return;
+    if (triggerVals.indexOf(watchEl.value) !== -1) {
+      field.setAttribute('required', 'required');
+    } else {
+      field.removeAttribute('required');
+    }
+  });
+
+  EMP_TABS.forEach(function(tabId, i) {
+    const pane = document.getElementById(tabId);
+    if (!pane) return;
+
+    // Check required fields
+    pane.querySelectorAll('[required]').forEach(function(field) {
+      const empty = (field.tagName === 'SELECT')
+        ? field.value === ''
+        : field.value.trim() === '';
+      if (empty) {
+        const label = field.closest('.form-group')
+          ? (field.closest('.form-group').querySelector('label') || {}).textContent || field.name
+          : field.name;
+        const cleanLabel = label.replace(/\*/g,'').trim();
+        errors.push(TAB_LABELS[i] + ': "' + cleanLabel + '" is required');
+        field.classList.add('field-error');
+        if (firstErrorTab === -1) { firstErrorTab = i; firstInvalidField = field; }
+      }
+    });
+
+    // Check pattern fields (numeric fields)
+    pane.querySelectorAll('[pattern]').forEach(function(field) {
+      if (field.value.trim() === '') return; // optional — skip if empty
+      const rx = new RegExp('^(?:' + field.pattern + ')$');
+      if (!rx.test(field.value)) {
+        const label = field.closest('.form-group')
+          ? (field.closest('.form-group').querySelector('label') || {}).textContent || field.name
+          : field.name;
+        const cleanLabel = label.replace(/\*/g,'').trim();
+        errors.push(TAB_LABELS[i] + ': "' + cleanLabel + '" must contain numbers only');
+        field.classList.add('field-error');
+        if (firstErrorTab === -1) { firstErrorTab = i; firstInvalidField = field; }
+      }
+    });
+
+    // Check format of email / number fields (native validation is disabled via novalidate)
+    pane.querySelectorAll('input[type="email"], input[type="number"]').forEach(function(field) {
+      if (field.value.trim() === '' || field.validity.valid) return;
+      const label = field.closest('.form-group')
+        ? (field.closest('.form-group').querySelector('label') || {}).textContent || field.name
+        : field.name;
+      const cleanLabel = label.replace(/\*/g,'').trim();
+      errors.push(TAB_LABELS[i] + ': "' + cleanLabel + '" has an invalid value');
+      field.classList.add('field-error');
+      if (firstErrorTab === -1) { firstErrorTab = i; firstInvalidField = field; }
+    });
+  });
+
+  if (errors.length > 0) {
+    e.preventDefault();
+    // Switch to the tab with the first error
+    if (firstErrorTab !== -1) {
+      empSwitchTab(EMP_TABS[firstErrorTab], tabBtns[firstErrorTab]);
+      if (firstInvalidField) firstInvalidField.focus();
+    }
+    showPopup(errors);
+  }
+});
+
+/* ── Remove the red highlight once the user edits the field ── */
+document.getElementById('empForm').addEventListener('input', function(e) {
+  if (e.target.classList) e.target.classList.remove('field-error');
+});
+document.getElementById('empForm').addEventListener('change', function(e) {
+  if (e.target.classList) e.target.classList.remove('field-error');
+});
+
+/* ── Numeric-only fields: block non-digit keypresses in real time ── */
+(function() {
+  // Selectors for the 4 fields that must be numbers only
+  var numericFields = [
+    'input[name="phone"]',
+    'input[name="bank_account_number"]',
+    'input[name="tax_registration_id"]',
+    'input[name="insurance_number"]'
+  ];
+  numericFields.forEach(function(sel) {
+    var el = document.querySelector(sel);
+    if (!el) return;
+
+    // Block non-numeric keypresses (allow Backspace, Delete, arrows, Tab, Enter)
+    el.addEventListener('keydown', function(e) {
+      var allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Enter','Home','End'];
+      if (allowed.indexOf(e.key) !== -1) return;
+      // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+      if (e.ctrlKey || e.metaKey) return;
+      // Allow +, -, space only for phone
+      if (sel.indexOf('phone') !== -1 && (e.key === '+' || e.key === '-' || e.key === ' ')) return;
+      // Block anything that isn't a digit
+      if (!/^\d$/.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    // Also strip on paste — handles copy-paste of text with letters
+    el.addEventListener('paste', function(e) {
+      e.preventDefault();
+      var pasted = (e.clipboardData || window.clipboardData).getData('text');
+      var cleaned = sel.indexOf('phone') !== -1
+        ? pasted.replace(/[^0-9+\-\s]/g, '')
+        : pasted.replace(/[^0-9]/g, '');
+      // Insert at cursor position
+      var start = el.selectionStart, end = el.selectionEnd;
+      var current = el.value;
+      el.value = current.slice(0, start) + cleaned + current.slice(end);
+      el.selectionStart = el.selectionEnd = start + cleaned.length;
+    });
+  });
+})();
+</script>
+{% endblock %}

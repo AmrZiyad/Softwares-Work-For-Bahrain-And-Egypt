@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payslip — {{ emp.name }} — {{ month }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #1f2937; background: #fff; }
+  .page { max-width: 720px; margin: 0 auto; padding: 28px 32px; }
+
+  .header { display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 3px solid #6366f1; padding-bottom: 14px; margin-bottom: 18px; }
+  .school-name { font-size: 20px; font-weight: 800; color: #6366f1; }
+  .doc-title   { font-size: 15px; color: #374151; margin-top: 2px; }
+  .month-badge { background: #6366f1; color: #fff; border-radius: 8px;
+                 padding: 6px 16px; font-weight: 700; font-size: 14px; }
+
+  .emp-box { background: #f3f4f6; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; }
+  .emp-box .row { display: flex; gap: 24px; }
+  .emp-box label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; }
+  .emp-box .val  { font-weight: 700; font-size: 13px; }
+
+  .section-title { background: #4f46e5; color: #fff; padding: 5px 10px;
+                   font-weight: 700; font-size: 11px; text-transform: uppercase;
+                   letter-spacing: .06em; margin-bottom: 0; }
+  table.det { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  table.det td { padding: 5px 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+  table.det td:last-child { text-align: right; font-weight: 600; }
+  table.det tr:last-child td { border-bottom: none; }
+  table.det .sub td { padding-left: 22px; color: #374151; font-size: 11px; }
+  table.det .sub td:last-child { font-weight: 400; }
+  table.det .total-row td { font-weight: 800; font-size: 13px; border-top: 2px solid #6366f1;
+                              padding-top: 7px; }
+
+  .boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .red-box { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px;
+             padding: 12px 16px; }
+  .red-box .lbl { font-size: 11px; color: #dc2626; font-weight: 600; text-transform: uppercase; }
+  .red-box .amt { font-size: 20px; font-weight: 800; color: #dc2626; }
+
+  .net-box { background: linear-gradient(135deg,#6366f1,#8b5cf6); border-radius: 8px;
+             padding: 12px 16px; }
+  .net-box .lbl { font-size: 11px; color: #c7d2fe; font-weight: 600; text-transform: uppercase; }
+  .net-box .amt { font-size: 22px; font-weight: 900; color: #fff; }
+
+  .footer { margin-top: 28px; border-top: 1px solid #e5e7eb; padding-top: 10px;
+            font-size: 10px; color: #9ca3af; text-align: center; }
+
+  @media print {
+    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .page { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="school-name">Kings School Egypt</div>
+      <div class="doc-title">Employee Pay Slip</div>
+    </div>
+    <div class="month-badge">{{ month }}</div>
+  </div>
+
+  <div class="emp-box">
+    <div class="row">
+      <div>
+        <div class="label">Employee Name</div>
+        <div class="val">{{ emp.name }}</div>
+      </div>
+      <div>
+        <div class="label">Employee ID</div>
+        <div class="val">{{ emp.emp_id or '—' }}</div>
+      </div>
+      <div>
+        <div class="label">Department</div>
+        <div class="val">{{ emp.dept or '—' }}</div>
+      </div>
+      <div>
+        <div class="label">Job Title</div>
+        <div class="val">{{ emp.job or '—' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gross Earnings -->
+  <div class="section-title">Gross Earnings</div>
+  <table class="det">
+    {% set earn_labels = [
+        ('BasicSalary','Basic Salary'),
+        ('HousingAllowance','Housing Allowance'),
+        ('TransportAllowance','Transport Allowance'),
+        ('OtherFixedAllowances','Other Fixed Allowances'),
+        ('VariableAllowances','Variable Allowances'),
+        ('Overtime','Overtime'),
+        ('Bonuses','Bonuses'),
+        ('Commissions','Commissions / Other Earnings'),
+        ('Reimbursement','Re-Imbursement'),
+        ('ReallocationAllowance','Re-Allocation Allowance'),
+        ('OtherEarnings','Other Earnings'),
+        ('FlightAllowance','Flight Allowance'),
+    ] %}
+    {% for col, lbl in earn_labels %}
+      {% set v = emp.earnings.get(col, 0) or 0 %}
+      {% if v %}
+      <tr class="sub"><td>{{ lbl }}</td><td>{{ "%.2f"|format(v) }}</td></tr>
+      {% endif %}
+    {% endfor %}
+    <tr class="total-row"><td>Total Gross Salary</td><td>EGP {{ "%.2f"|format(gross) }}</td></tr>
+  </table>
+
+  <!-- Tax Calculation Breakdown -->
+  {% if tax_detail %}
+  <div class="section-title" style="background:#dc2626;">Tax Calculation</div>
+  <table class="det">
+    <tr class="sub"><td>Net before tax</td><td>EGP {{ "%.2f"|format(tax_detail.net_before_tax) }}</td></tr>
+    <tr class="sub"><td>Personal Exemption (20,000 ÷ 12)</td><td>EGP {{ "%.2f"|format(tax_detail.pe_monthly) }}</td></tr>
+    <tr class="sub"><td>SI for tax (min(basic,16,700) × 11%)</td><td>EGP {{ "%.2f"|format(tax_detail.si_monthly) }}</td></tr>
+    <tr class="sub"><td style="font-weight:600;">Annual taxable</td><td style="font-weight:600;">EGP {{ "%.2f"|format(tax_detail.taxable_annual) }}</td></tr>
+  </table>
+  <!-- Bracket table -->
+  <table class="det" style="font-size:11px;margin-bottom:4px;">
+    <tr style="background:#fee2e2;">
+      <th style="text-align:left;padding:4px 10px;color:#dc2626;">Bracket</th>
+      <th style="text-align:center;padding:4px 10px;color:#dc2626;">Rate</th>
+      <th style="text-align:right;padding:4px 10px;color:#dc2626;">Annual Tax</th>
+    </tr>
+    {% for b in tax_detail.brackets %}
+    <tr class="sub">
+      <td>{{ b.label }}</td>
+      <td style="text-align:center;">{{ "%.1f"|format(b.rate*100) }}%</td>
+      <td>{% if b.tax > 0 %}{{ "%.2f"|format(b.tax) }}{% else %}-{% endif %}</td>
+    </tr>
+    {% endfor %}
+    <tr style="border-top:2px solid #dc2626;">
+      <td colspan="2" style="font-weight:700;">Total Annual salary tax</td>
+      <td style="font-weight:700;color:#dc2626;">{{ "%.2f"|format(tax_detail.annual_tax) }}</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="font-weight:700;">Monthly salary tax</td>
+      <td style="font-weight:700;color:#dc2626;">{{ "%.2f"|format(tax_detail.monthly_tax) }}</td>
+    </tr>
+  </table>
+  {% endif %}
+
+  <!-- Deductions -->
+  <div class="section-title" style="background:#dc2626;">Total Deductions</div>
+  <table class="det">
+    {% if absences %}  <tr class="sub"><td>Absences</td><td>{{ "%.2f"|format(absences) }}</td></tr>{% endif %}
+    {% if lateness %}  <tr class="sub"><td>Late / Early</td><td>{{ "%.2f"|format(lateness) }}</td></tr>{% endif %}
+    {% if sick %}      <tr class="sub"><td>Sick Leave</td><td>{{ "%.2f"|format(sick) }}</td></tr>{% endif %}
+    {% if sanctions %} <tr class="sub"><td>Sanctions</td><td>{{ "%.2f"|format(sanctions) }}</td></tr>{% endif %}
+    {% if other_ded %} <tr class="sub"><td>Other Deductions</td><td>{{ "%.2f"|format(other_ded) }}</td></tr>{% endif %}
+    {% if loan %}      <tr class="sub"><td>Loan Deduction</td><td>{{ "%.2f"|format(loan) }}</td></tr>{% endif %}
+    {% if si %}        <tr class="sub"><td>Social Insurance (11%)</td><td>{{ "%.2f"|format(si) }}</td></tr>{% endif %}
+    {% if tax %}       <tr class="sub"><td>Income Tax</td><td>{{ "%.2f"|format(tax) }}</td></tr>{% endif %}
+  </table>
+
+  <div class="boxes">
+    <div class="red-box">
+      <div class="lbl">Total Deductions</div>
+      <div class="amt">EGP {{ "%.2f"|format(total_ded) }}</div>
+    </div>
+    <div class="net-box">
+      <div class="lbl">Net Take Home</div>
+      <div class="amt">EGP {{ "%.2f"|format(net) }}</div>
+    </div>
+  </div>
+
+  {% if notes %}
+  <div style="margin-top:8px;font-size:11px;color:#6b7280;"><strong>Notes:</strong> {{ notes }}</div>
+  {% endif %}
+
+  <div class="footer">
+    This payslip is system-generated. Kings School Egypt HR &amp; Payroll System.
+    Generated: {% set today = [] %}{{ day_rate and ("Day rate: EGP " ~ "%.2f"|format(day_rate)) or "" }}
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Kings School Egypt — HR & Payroll{% endblock %}</title>
+<link rel="icon" href="{{ url_for('static', filename='img/logo.png') }}" type="image/png">
+<style>
+  /* ── Dark theme (default) ── */
+  :root, [data-theme="dark"] {
+    --bg: #1a1a2e; --sidebar: #16213e; --card: #0f3460;
+    --accent: #e94560; --accent2: #00b4d8;
+    --text: #e0e0e0; --text2: #a0aec0; --border: #2d3748;
+    --success: #38a169; --warning: #d69e2e; --error: #e53e3e;
+    --input-bg: #1a1a2e; --topbar-bg: #16213e;
+    --shadow: rgba(0,0,0,.4);
+    --font: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  /* ── Light theme ── */
+  [data-theme="light"] {
+    --bg: #f0f4f8; --sidebar: #1e3a5f; --card: #ffffff;
+    --accent: #e94560; --accent2: #0077b6;
+    --text: #1a202c; --text2: #4a5568; --border: #cbd5e0;
+    --success: #276749; --warning: #975a16; --error: #c53030;
+    --input-bg: #ffffff; --topbar-bg: #ffffff;
+    --shadow: rgba(0,0,0,.1);
+    --font: 'Segoe UI', system-ui, sans-serif;
+  }
+  [data-theme="light"] .sidebar { color: #e0e0e0; }
+  [data-theme="light"] .nav-link { color: #c8d8eb; }
+  [data-theme="light"] .nav-link:hover { background: rgba(255,255,255,.12); color: #fff; }
+  [data-theme="light"] .nav-link.active { background: rgba(233,69,96,.25); color: #ff8fa3; border-left-color: var(--accent); }
+  [data-theme="light"] .sidebar-footer { color: #c8d8eb; }
+  [data-theme="light"] .sidebar-footer strong { color: #fff; }
+  [data-theme="light"] .nav-section { color: #90aac4; }
+  [data-theme="light"] .topbar { background: var(--topbar-bg); border-bottom: 1px solid var(--border); box-shadow: 0 1px 4px var(--shadow); }
+  [data-theme="light"] .topbar h1 { color: #1a202c; }
+  [data-theme="light"] thead th { background: #edf2f7; color: #4a5568; }
+  [data-theme="light"] tbody tr:hover { background: rgba(0,0,0,.03); }
+  [data-theme="light"] tfoot td { background: #edf2f7; }
+  [data-theme="light"] input, [data-theme="light"] select, [data-theme="light"] textarea {
+    background: var(--input-bg); color: #1a202c; border-color: #cbd5e0;
+  }
+  [data-theme="light"] .stat-card { box-shadow: 0 1px 4px var(--shadow); }
+  [data-theme="light"] .mode-card { background: #fff; }
+  [data-theme="light"] .mode-card:hover { background: #e8f4f8; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; transition: background .2s, color .2s; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px; min-height: 100vh; background: var(--sidebar);
+    display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0;
+    border-right: 1px solid var(--border); z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,.1);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sidebar-logo img {
+    width: 36px; height: 36px; border-radius: 50%;
+    object-fit: cover; border: 2px solid rgba(255,255,255,.2);
+  }
+  .sidebar-logo .logo-fallback {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .sidebar-logo .logo-text { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; }
+  .sidebar-logo .logo-sub { font-size: 11px; color: #90aac4; }
+  .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+  .nav-section { padding: 6px 16px 2px; font-size: 10px; text-transform: uppercase;
+                  letter-spacing: .08em; color: var(--text2); margin-top: 8px; }
+  .nav-link {
+    display: flex; align-items: center; gap: 10px; padding: 9px 16px;
+    color: var(--text2); text-decoration: none; font-size: 13.5px;
+    border-left: 3px solid transparent; transition: all .15s;
+  }
+  .nav-link:hover { background: rgba(255,255,255,.05); color: var(--text); }
+  .nav-link.active { background: rgba(233,69,96,.1); color: var(--accent); border-left-color: var(--accent); }
+  .nav-link .icon { width: 18px; text-align: center; font-size: 15px; }
+  .sidebar-footer {
+    padding: 12px 16px; border-top: 1px solid rgba(255,255,255,.1);
+    font-size: 12px; color: var(--text2);
+  }
+  .sidebar-footer strong { display: block; color: #fff; font-size: 13px; }
+
+  /* Main */
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar {
+    background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 56px; display: flex; align-items: center;
+    gap: 16px; position: sticky; top: 0; z-index: 50;
+  }
+  .topbar h1 { font-size: 16px; font-weight: 600; flex: 1; }
+  .topbar .breadcrumb { font-size: 12px; color: var(--text2); }
+  .page-body { padding: 24px; flex: 1; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    background: none; border: 1px solid var(--border); color: var(--text2);
+    border-radius: 20px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; transition: all .15s;
+    white-space: nowrap;
+  }
+  .theme-toggle:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Cards */
+  .card { background: var(--card); border-radius: 10px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text2); text-transform: uppercase;
+                 letter-spacing: .05em; margin-bottom: 16px; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--card); border-radius: 10px; padding: 18px 20px; border: 1px solid var(--border); }
+  .stat-card .stat-value { font-size: 28px; font-weight: 700; color: var(--accent2); }
+  .stat-card .stat-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* Forms */
+  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+  input, select, textarea {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 13.5px;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent2); }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 14px; margin-bottom: 14px; }
+  .form-group { margin-bottom: 14px; }
+
+  /* Tabs */
+  .tab-nav { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 20px; flex-wrap: wrap; }
+  .tab-btn {
+    padding: 9px 18px; font-size: 13px; font-weight: 500; background: none;
+    border: none; border-bottom: 2px solid transparent; margin-bottom: -2px;
+    color: var(--text2); cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 18px; border-radius: 6px; font-size: 13.5px; font-weight: 500;
+    cursor: pointer; border: none; text-decoration: none; transition: all .15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { opacity: .88; }
+  .btn-secondary { background: rgba(255,255,255,.08); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: rgba(255,255,255,.14); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-danger  { background: var(--error); color: #fff; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn:disabled, .btn[disabled] { opacity: .4; cursor: not-allowed; pointer-events: none; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: rgba(0,0,0,.2); padding: 10px 12px; text-align: left;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--text2); border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:hover { background: rgba(255,255,255,.04); }
+  tbody td { padding: 9px 12px; white-space: nowrap; }
+  tfoot td { padding: 9px 12px; font-weight: 600; border-top: 2px solid var(--border); background: rgba(0,0,0,.2); }
+
+  /* Alerts */
+  .alert { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; }
+  .alert-success { background: rgba(56,161,105,.15); border: 1px solid var(--success); color: #68d391; }
+  .alert-error   { background: rgba(229,62,62,.15);  border: 1px solid var(--error);   color: #fc8181; }
+  .alert-info    { background: rgba(0,180,216,.12);  border: 1px solid var(--accent2); color: var(--accent2); }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: rgba(56,161,105,.2); color: #68d391; }
+  .badge-red   { background: rgba(229,62,62,.2);  color: #fc8181; }
+  .badge-blue  { background: rgba(0,180,216,.2);  color: var(--accent2); }
+  .badge-gray  { background: rgba(160,174,192,.15); color: var(--text2); }
+
+  /* Mode cards */
+  .mode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; }
+  .mode-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px 20px; text-decoration: none; color: var(--text);
+    transition: all .18s; display: flex; flex-direction: column; gap: 8px;
+  }
+  .mode-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+  .mode-card .mc-icon { font-size: 28px; }
+  .mode-card .mc-title { font-size: 15px; font-weight: 600; }
+  .mode-card .mc-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  /* Search bar */
+  .search-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .search-bar input { max-width: 320px; }
+
+  /* Number formatting */
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Responsive */
+  @media(max-width:768px) {
+    .sidebar { width: 60px; }
+    .sidebar-logo .logo-text, .sidebar-logo .logo-sub, .nav-link span, .nav-section { display: none; }
+    .main { margin-left: 60px; }
+    .nav-link { justify-content: center; padding: 12px; }
+  }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if session.user %}
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <img src="{{ url_for('static', filename='img/logo.png') }}"
+         alt="Logo"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <div class="logo-fallback" style="display:none;">👑</div>
+    <div>
+      <div class="logo-text">Kings School</div>
+      <div class="logo-sub">HR & Payroll</div>
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}">
+      <span class="icon">🏠</span><span>Dashboard</span>
+    </a>
+    {% if session.role in ('Admin','HR') %}
+    <div class="nav-section">HR</div>
+    <a href="{{ url_for('employees') }}" class="nav-link {% if 'employee' in request.endpoint %}active{% endif %}">
+      <span class="icon">👥</span><span>Employees</span>
+    </a>
+    <a href="{{ url_for('payroll_menu') }}" class="nav-link {% if 'payroll' in request.endpoint %}active{% endif %}">
+      <span class="icon">💵</span><span>Payroll</span>
+    </a>
+    <a href="{{ url_for('reports_menu') }}" class="nav-link {% if 'report' in request.endpoint %}active{% endif %}">
+      <span class="icon">📊</span><span>Reports</span>
+    </a>
+    {% endif %}
+    {% if session.role == 'Admin' %}
+    <div class="nav-section">Admin</div>
+    <a href="{{ url_for('user_manager') }}" class="nav-link {% if request.endpoint=='user_manager' %}active{% endif %}">
+      <span class="icon">⚙️</span><span>Users</span>
+    </a>
+    <a href="{{ url_for('payroll_settings') }}" class="nav-link {% if request.endpoint=='payroll_settings' %}active{% endif %}">
+      <span class="icon">🔧</span><span>Pay Settings</span>
+    </a>
+    {% endif %}
+  </div>
+  <div class="sidebar-footer">
+    <strong>{{ session.fullname or session.user }}</strong>
+    {{ session.role }}
+    &nbsp;·&nbsp;<a href="{{ url_for('logout') }}" style="color:var(--accent);text-decoration:none;">Sign out</a>
+  </div>
+</nav>
+{% endif %}
+
+<div class="main">
+  {% if session.user %}
+  <div class="topbar">
+    <h1>{% block page_title %}Kings School Egypt{% endblock %}</h1>
+    {% block topbar_actions %}{% endblock %}
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle dark/light mode">
+      <span id="themeIcon">☀️</span><span id="themeLabel">Light</span>
+    </button>
+  </div>
+  {% endif %}
+
+  <div class="page-body {% if not session.user %}login-page{% endif %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category=='success' else 'error' if category=='error' else 'info' }}">
+          {{ '✅' if category=='success' else '❌' if category=='error' else 'ℹ️' }} {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+/* ── Theme toggle ── */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('ks_theme', theme);
+  const btn = document.getElementById('themeBtn');
+  const icon = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  if (!btn) return;
+  if (theme === 'light') {
+    icon.textContent = '🌙';
+    label.textContent = 'Dark';
+  } else {
+    icon.textContent = '☀️';
+    label.textContent = 'Light';
+  }
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+// Apply saved theme immediately
+(function() {
+  try {
+    const saved = localStorage.getItem('ks_theme');
+    if (saved) applyTheme(saved);
+  } catch(e) {}
+})();
+
+/* ── Number formatter ── */
+function fmt(n) {
+  if (n == null || n === '') return '';
+  return Number(n).toLocaleString('en-EG', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('td.num').forEach(td => {
+    const v = parseFloat(td.dataset.val ?? td.textContent);
+    if (!isNaN(v)) td.textContent = fmt(v);
+  });
+});
+
+/* ── Tab switcher ── */
+function switchTab(tabId, btn) {
+  const container = btn.closest('[data-tabs]') || document;
+  container.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const pane = container.querySelector('#' + tabId);
+  if (pane) pane.classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

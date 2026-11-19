@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+/* Match the Dashboard surfaces and keep the payroll action comfortably readable. */
+.run-payroll-card { max-width: 820px; }
+.run-payroll-card .card-title, .payroll-results-card .card-title { --card-accent: var(--sky); }
+.run-payroll-card .alert-info { margin: 0 0 22px; }
+.run-payroll-card input[name="month"] { max-width: 360px; min-height: 42px; }
+.run-payroll-card .btn-primary { min-height: 40px; }
+.payroll-results-card { margin-top: 24px; }
+.payroll-results-card .table-wrap { border-radius: var(--radius); }
+.payroll-results-card tbody td.num, .payroll-results-card thead th.num,
+.payroll-results-card tfoot td.num { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .run-payroll-card { max-width: none; }
+  .run-payroll-card input[name="month"] { max-width: none; }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}Run Monthly Payroll{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('payroll_menu') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+<div class="card run-payroll-card">
+  <div class="card-title">Run Payroll for All Employees</div>
+  <div class="alert alert-info">
+    ℹ️ This runs payroll for <strong>all active employees</strong>. Allowed months: <strong>{{ cur_month }}</strong> (current) or <strong>{{ next_month }}</strong> (next).
+  </div>
+  <form method="POST">
+    <div class="form-group">
+      <label>Payroll Month</label>
+      <input type="month" name="month" value="{{ month }}" min="{{ cur_month }}" max="{{ next_month }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary"
+            onclick="return confirm('Run payroll for ALL active employees for ' + document.querySelector('[name=month]').value + '?')">
+      ▶️ Run Now
+    </button>
+  </form>
+</div>
+
+{% if results %}
+<div class="card payroll-results-card">
+  <div class="card-title">Results — {{ results|length }} Employees Processed</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th class="num">Gross</th><th class="num">SI</th><th class="num">Tax</th><th class="num">Net</th></tr></thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.name }}</td>
+          <td class="num" data-val="{{ r.gross }}"></td>
+          <td class="num" data-val="{{ r.si }}"></td>
+          <td class="num" data-val="{{ r.tax }}"></td>
+          <td class="num" data-val="{{ r.net }}"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td class="num" data-val="{{ results|sum(attribute='gross') }}"></td>
+          <td class="num" data-val="{{ results|sum(attribute='si') }}"></td>
+          <td class="num" data-val="{{ results|sum(attribute='tax') }}"></td>
+          <td class="num" data-val="{{ results|sum(attribute='net') }}"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

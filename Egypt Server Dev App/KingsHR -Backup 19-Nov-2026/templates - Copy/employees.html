@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block page_title %}Employees{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('employee_bulk_upload') }}" class="btn btn-secondary btn-sm"><svg class="ic"><use href="#i-upload"/></svg> Bulk Upload</a>
+  <a href="{{ url_for('employee_new') }}" class="btn btn-primary btn-sm"><svg class="ic"><use href="#i-plus"/></svg> Add Employee</a>
+{% endblock %}
+{% block extra_head %}
+<style>
+  .btn .ic { width: 15px; height: 15px; }
+
+  /* ── Filter panel ── */
+  .filter-card { padding: 20px 22px; margin-bottom: 20px; }
+  .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px 16px; align-items: end; }
+  .filter-grid .f-search { grid-column: span 2; }
+  @media (max-width: 640px) { .filter-grid .f-search { grid-column: span 1; } }
+  .filter-grid label { margin-bottom: 5px; }
+  .filter-grid input, .filter-grid select { height: 40px; padding-top: 0; padding-bottom: 0; }
+  .input-icon { position: relative; }
+  .input-icon .ic { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text2); pointer-events: none; }
+  .input-icon input { padding-left: 38px; }
+  .filter-foot {
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 12px;
+    padding-top: 14px; margin-top: 2px; border-top: 1px solid var(--border);
+  }
+  .filter-active-count { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--eyebrow); display: flex; align-items: center; gap: 8px; }
+  .filter-active-count::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--sky); }
+
+  /* ── Table ── */
+  .emp-row { cursor: pointer; }
+  .emp-row:hover td { background: var(--row-hover) !important; }
+  .who { display: flex; align-items: center; gap: 12px; }
+  .who strong { font-weight: 700; color: var(--heading); }
+  .av {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: var(--icon-bg); color: var(--icon-fg);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-head); font-size: 16px; font-weight: 700;
+  }
+  .idtag {
+    display: inline-block; padding: 2px 9px; border-radius: 4px; font-size: 11px; font-weight: 700;
+    letter-spacing: .04em; background: var(--row-hover); color: var(--heading); border: 1px solid var(--border);
+  }
+  .muted-cell { color: var(--text2); }
+  .count-note { font-size: 12px; color: var(--text2); margin-top: 14px; }
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- Icons used only on this page -->
+<svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M14 6l4 4"/></symbol>
+</svg>
+
+<form class="card filter-card" method="GET" id="filterForm">
+  <div class="filter-grid">
+    <div class="f-search">
+      <label for="q">Search</label>
+      <div class="input-icon">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input type="text" name="q" id="q" value="{{ search }}" placeholder="Name or ID">
+      </div>
+    </div>
+    <div>
+      <label for="status_filter">Status</label>
+      <select name="status_filter" id="status_filter">
+        <option value=""          {% if status_filter=='' %}selected{% endif %}>All Statuses</option>
+        <option value="Active"    {% if status_filter=='Active' %}selected{% endif %}>Active</option>
+        <option value="Inactive"  {% if status_filter=='Inactive' %}selected{% endif %}>Inactive</option>
+        <option value="Resigned"  {% if status_filter=='Resigned' %}selected{% endif %}>Resigned</option>
+        <option value="Terminated"{% if status_filter=='Terminated' %}selected{% endif %}>Terminated</option>
+      </select>
+    </div>
+    <div>
+      <label for="dept_filter">Department</label>
+      <select name="dept_filter" id="dept_filter">
+        <option value="">All Depts</option>
+        {% for d in dept_list %}
+        <option value="{{ d }}" {% if dept_filter==d %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="title_filter">Job Title</label>
+      <select name="title_filter" id="title_filter">
+        <option value="">All Titles</option>
+        {% for t in title_list %}
+        <option value="{{ t }}" {% if title_filter==t %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="nationality_filter">Nationality</label>
+      <select name="nationality_filter" id="nationality_filter">
+        <option value="">All Nationalities</option>
+        {% for n in nationality_list %}
+        <option value="{{ n }}" {% if nationality_filter==n %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="mobile_filter">Mobile</label>
+      <div class="input-icon">
+        <svg class="ic"><use href="#i-phone"/></svg>
+        <input type="text" name="mobile_filter" id="mobile_filter" value="{{ mobile_filter }}" placeholder="Mobile">
+      </div>
+    </div>
+    <div>
+      <label for="join_from">Joined from</label>
+      <input type="date" name="join_from" id="join_from" value="{{ join_from }}" title="Joined from">
+    </div>
+    <div>
+      <label for="join_to">Joined to</label>
+      <input type="date" name="join_to" id="join_to" value="{{ join_to }}" title="Joined to">
+    </div>
+
+    {% if search or status_filter or dept_filter or title_filter or nationality_filter or mobile_filter or join_from or join_to %}
+    <div class="filter-foot">
+      <span class="filter-active-count">Filtered</span>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="clearFilters()"><svg class="ic"><use href="#i-x"/></svg> Clear</button>
+    </div>
+    {% endif %}
+  </div>
+</form>
+<script>
+// Auto-submit on any filter change
+(function(){
+  var form = document.getElementById('filterForm');
+  var timer;
+  function submitSoon() { clearTimeout(timer); timer = setTimeout(function(){ form.submit(); }, 350); }
+  // Dropdowns → instant
+  ['status_filter','dept_filter','title_filter','nationality_filter'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', function(){ form.submit(); });
+  });
+  // Text inputs → debounced 350ms
+  ['q','mobile_filter'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', submitSoon);
+  });
+  // Date inputs → instant on change
+  ['join_from','join_to'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', function(){ form.submit(); });
+  });
+})();
+function clearFilters() {
+  window.location = '{{ url_for("employees") }}';
+}
+</script>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <div class="table-wrap" style="border:none;border-radius:0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Emp ID</th><th>Name</th><th>Department</th><th>Job Title</th>
+          <th>Nationality</th><th>Mobile</th>
+          <th class="num">Total Salary</th><th>Join Date</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in emps %}
+        <tr class="emp-row" ondblclick="window.location='{{ url_for('employee_edit', eid=e.eid) }}'">
+          <td>{% if e.emp_id %}<span class="idtag">{{ e.emp_id }}</span>{% else %}—{% endif %}</td>
+          <td><div class="who"><span class="av">{{ ((e.name or '?')|string)[:1]|upper }}</span><strong>{{ e.name }}</strong></div></td>
+          <td>{{ e.dept or '—' }}</td>
+          <td class="muted-cell">{{ e.job or '—' }}</td>
+          <td class="muted-cell">{{ e.nationality or '—' }}</td>
+          <td class="muted-cell">{{ e.phone or '—' }}</td>
+          <td class="num" data-val="{{ e.total_salary }}"></td>
+          <td class="muted-cell">{{ e.join_date or '—' }}</td>
+          <td>
+            {% if e.status == 'Active' %}
+              <span class="badge badge-green">Active</span>
+            {% elif e.status == 'Inactive' %}
+              <span class="badge badge-gray">Inactive</span>
+            {% elif e.status == 'Resigned' %}
+              <span class="badge badge-blue">Resigned</span>
+            {% else %}
+              <span class="badge badge-red">{{ e.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('employee_edit', eid=e.eid) }}" class="btn btn-secondary btn-sm"><svg class="ic"><use href="#i-edit"/></svg> Edit</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10" style="text-align:center;color:var(--text2);padding:40px;">
+          {% if search or status_filter or dept_filter or title_filter or nationality_filter or mobile_filter or join_from or join_to %}
+          No employees match the current filter.
+          {% else %}No employees found.{% endif %}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="count-note">{{ emps|length }} employee(s) shown. <em style="opacity:.8;">Double-click any row to edit.</em></p>
+{% endblock %}

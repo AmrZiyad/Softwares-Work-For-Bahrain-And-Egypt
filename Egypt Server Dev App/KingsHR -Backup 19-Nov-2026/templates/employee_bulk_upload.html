@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block page_title %}Bulk Upload Employees{% endblock %}
+
+{% block extra_head %}
+<style>
+  .bulk-grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:24px; align-items:start; }
+  @media(max-width:1100px) { .bulk-grid { grid-template-columns:1fr; } }
+
+  .lead { font-size:13px; color:var(--text2); margin-bottom:20px; max-width:560px; }
+
+  .dropzone {
+    border:2px dashed var(--rule); border-radius:var(--radius); padding:30px 24px; text-align:center;
+    background:var(--bg); transition:border-color .15s, background .15s; margin-bottom:18px;
+  }
+  .dropzone:hover, .dropzone.drag { border-color:var(--sky); background:var(--row-hover); }
+  .dz-icon {
+    width:56px; height:56px; border-radius:50%; background:var(--icon-bg); color:var(--icon-fg);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 12px;
+  }
+  .dz-icon .ic { width:26px; height:26px; }
+  .dz-title { font-family:var(--font-head); font-size:22px; font-weight:700; color:var(--heading); }
+  .dz-hint { font-size:12px; color:var(--text2); margin:2px 0 16px; }
+  .dropzone input[type=file] { max-width:360px; margin:0 auto; cursor:pointer; background:var(--card); }
+  .dropzone input[type=file]::file-selector-button {
+    margin-right:12px; padding:6px 14px; border:none; border-radius:4px; cursor:pointer;
+    background:var(--btn-bg); color:var(--btn-fg); font-weight:700; font-size:12px; font-family:var(--font-body);
+  }
+  .req { color:var(--red); }
+  .form-actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+
+  .note { display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .note:last-of-type { border-bottom:none; }
+  .note-ic {
+    width:36px; height:36px; border-radius:8px; background:var(--row-hover); color:var(--heading);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .note strong { color:var(--heading); }
+  .note code { background:var(--bg); border:1px solid var(--border); padding:1px 7px; border-radius:4px; font-size:12px; color:var(--heading); }
+
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .chip {
+    font-size:11px; font-weight:600; padding:4px 10px; border-radius:99px;
+    background:var(--row-hover); color:var(--heading); border:1px solid var(--border);
+  }
+
+  .badge .ic { width:12px; height:12px; margin-right:4px; vertical-align:-2px; stroke-width:2.4; }
+  .row-err { color:var(--error); }
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('employees') }}" class="btn btn-secondary btn-sm"><svg class="ic"><use href="#i-back"/></svg> Back to Employees</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Icons used only on this page -->
+<svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+</svg>
+
+<div class="bulk-grid">
+
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title">Bulk Employee Upload (CSV)</div>
+    <p class="lead">
+      Upload a CSV file with employee data. The first row must be a header row.
+      Columns can be in any order. Only rows with at least a First Name or Family Name will be imported.
+    </p>
+
+    <form method="POST" enctype="multipart/form-data">
+      <div class="dropzone" id="dropzone">
+        <div class="dz-icon"><svg class="ic"><use href="#i-upload"/></svg></div>
+        <div class="dz-title">Choose your CSV file</div>
+        <div class="dz-hint">Only .csv files are accepted</div>
+        <label style="text-align:center;">CSV File <span class="req">*</span></label>
+        <input type="file" name="csv_file" accept=".csv" required>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><svg class="ic"><use href="#i-upload"/></svg> Upload &amp; Import</button>
+        <a href="{{ url_for('static', filename='employee_template.csv') }}"
+           class="btn btn-secondary"
+           onclick="if(!confirm('Download the CSV template?')) return false;">
+          <svg class="ic"><use href="#i-download"/></svg> Download Template
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Guidelines -->
+  <div class="card">
+    <div class="card-title">Before You Upload</div>
+
+    <div class="note">
+      <div class="note-ic"><svg class="ic"><use href="#i-list"/></svg></div>
+      <div>
+        <strong>Required CSV columns</strong>
+        <div class="chips">
+          {% for c in ['EmployeeID','FirstName','FamilyName','Department','JobTitle','BasicSalary',
+                       'HousingAllowance','TransportAllowance','OtherFixedAllowances','PersonalEmail',
+                       'WorkSchedule','DateOfJoining','DateOfBirth','EmploymentStatus','NationalID',
+                       'Phone','Gender','Nationality'] %}
+          <span class="chip">{{ c }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <div class="note-ic"><svg class="ic"><use href="#i-cal"/></svg></div>
+      <div>
+        <strong>Date format</strong><br>
+        Use <strong>dd/mm/yyyy</strong> for all date columns (e.g. <code>15/08/2022</code>).
+        The system also accepts <code>dd-mm-yyyy</code> or <code>yyyy-mm-dd</code>.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% if results %}
+<div class="card" style="padding:0;overflow:hidden;">
+  <div style="padding:24px 26px 0;"><div class="card-title">Import Results</div></div>
+  <div class="table-wrap" style="border:none;border-radius:0;">
+    <table>
+      <thead>
+        <tr><th>Row</th><th>Name</th><th>Status</th><th>Message</th></tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.row }}</td>
+          <td>{{ r.name }}</td>
+          <td>
+            {% if r.status == 'ok' %}
+              <span class="badge badge-green"><svg class="ic"><use href="#i-check"/></svg>Added</span>
+            {% else %}
+              <span class="badge badge-red"><svg class="ic"><use href="#i-x"/></svg>Error</span>
+            {% endif %}
+          </td>
+          <td class="{% if r.status=='error' %}row-err{% endif %}" style="{% if r.status!='error' %}color:var(--text2);{% endif %}max-width:400px;white-space:normal;">
+            {{ r.msg or '—' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* Highlight the drop area while a file is dragged over it */
+  (function () {
+    const dz = document.getElementById('dropzone');
+    if (!dz) return;
+    ['dragenter', 'dragover'].forEach(e => dz.addEventListener(e, () => dz.classList.add('drag')));
+    ['dragleave', 'drop'].forEach(e => dz.addEventListener(e, () => dz.classList.remove('drag')));
+  })();
+</script>
+{% endblock %}

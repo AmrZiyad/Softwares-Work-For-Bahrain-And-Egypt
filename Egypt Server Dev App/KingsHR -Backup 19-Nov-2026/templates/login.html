@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#143256">
+  <title>Sign In — King's School The Crown Egypt</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --navy: #143256;
+      --red: #DC001E;
+      --sky: #59CBE8;
+      --grey: #C6C6C6;
+      --white: #FFFFFF;
+      --ink: #173452;
+      --muted: #718094;
+      --border: #e4e9ed;
+      --field: rgba(255,255,255,.09);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Raleway", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #f8fafb;
+    }
+
+    .site-header {
+      min-height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 18px clamp(24px, 5vw, 78px);
+      background: #fff;
+      border-bottom: 1px solid rgba(20,50,86,.08);
+      position: relative;
+      z-index: 2;
+    }
+    .brand-lockup { display: flex; align-items: center; gap: 15px; min-width: 0; }
+    .brand-mark {
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid #e7edf1;
+      background: #fff;
+    }
+    .brand-mark img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+    .brand-fallback {
+      display: none;
+      width: 100%; height: 100%; place-items: center;
+      background: var(--navy); color: #fff;
+      font-size: 15px; font-weight: 800; letter-spacing: -1px;
+    }
+    .brand-title { color: var(--navy); font-size: 15px; font-weight: 800; line-height: 1.3; letter-spacing: -.25px; }
+    .brand-subtitle { display: block; margin-top: 4px; color: #778494; font-size: 10px; font-weight: 700; letter-spacing: 1.55px; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 14px; color: #7c8998; font-size: 11px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; }
+    .header-rule { width: 36px; height: 3px; background: var(--red); border-radius: 4px; }
+
+    .page-layout {
+      min-height: calc(100vh - 92px);
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(430px, .92fr);
+    }
+
+    .intro-panel {
+      position: relative;
+      min-width: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(42px, 6vw, 88px) clamp(28px, 7vw, 104px);
+      background: #f8fafb;
+      isolation: isolate;
+    }
+    .intro-panel::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: min(39vw, 520px);
+      aspect-ratio: 1;
+      right: -19%;
+      top: 7%;
+      border: 1px solid rgba(89,203,232,.37);
+      border-radius: 50%;
+      box-shadow: 0 0 0 28px rgba(89,203,232,.045), 0 0 0 68px rgba(89,203,232,.035), 0 0 0 112px rgba(89,203,232,.025);
+    }
+    .intro-panel::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: 8px;
+      height: 170px;
+      left: 0;
+      bottom: 13%;
+      background: var(--sky);
+    }
+    .overline {
+      display: flex; align-items: center; gap: 11px;
+      color: var(--red); font-size: 11px; font-weight: 800;
+      letter-spacing: 2.2px; text-transform: uppercase;
+      margin-bottom: 25px;
+    }
+    .overline::before { content: ""; width: 31px; height: 2px; background: var(--red); }
+    .intro-panel h1 {
+      max-width: 680px;
+      margin: 0;
+      color: var(--navy);
+      font-size: clamp(43px, 5.2vw, 76px);
+      font-weight: 700;
+      line-height: .99;
+      letter-spacing: -3.2px;
+    }
+    .intro-panel h1 em { color: var(--sky); font-style: normal; }
+    .intro-copy {
+      max-width: 465px;
+      margin: 25px 0 0;
+      color: #637489;
+      font-size: 15px;
+      line-height: 1.85;
+    }
+
+    .brand-graphic {
+      width: min(100%, 520px);
+      min-height: 132px;
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      margin-top: clamp(38px, 5vw, 66px);
+      position: relative;
+    }
+    .graphic-tile {
+      position: relative;
+      overflow: hidden;
+      min-height: 132px;
+      border-radius: 3px;
+    }
+    .graphic-tile.navy { flex: 1.35; background: var(--navy); }
+    .graphic-tile.sky { flex: .9; background: var(--sky); }
+    .graphic-tile.red { flex: .48; background: var(--red); }
+    .graphic-tile.grey { flex: .52; background: var(--grey); }
+    .graphic-tile.navy::after {
+      content: "K";
+      position: absolute;
+      right: 9px; bottom: -36px;
+      color: rgba(255,255,255,.095);
+      font-size: 140px; font-weight: 800; line-height: 1;
+    }
+    .graphic-tile.sky::before, .graphic-tile.sky::after {
+      content: ""; position: absolute; border: 1px solid rgba(20,50,86,.22); border-radius: 50%;
+    }
+    .graphic-tile.sky::before { width: 93px; height: 93px; right: -31px; top: -23px; }
+    .graphic-tile.sky::after { width: 64px; height: 64px; right: -16px; top: -8px; }
+    .intro-meta {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 29px; color: #8693a1; font-size: 10px;
+      font-weight: 700; letter-spacing: 1.55px; text-transform: uppercase;
+    }
+    .intro-meta .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--red); }
+
+    .access-panel {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: clamp(32px, 5.4vw, 78px) clamp(28px, 6vw, 84px);
+      background: var(--navy);
+      color: #fff;
+      isolation: isolate;
+    }
+    .access-panel::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: 510px;
+      height: 510px;
+      top: -255px;
+      right: -250px;
+      border: 1px solid rgba(89,203,232,.2);
+      border-radius: 50%;
+      box-shadow: 0 0 0 34px rgba(89,203,232,.035), 0 0 0 74px rgba(89,203,232,.025);
+    }
+    .access-panel::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      left: 0; top: 0;
+      width: 5px; height: 100%;
+      background: var(--red);
+    }
+    .secure-label {
+      display: inline-flex; align-items: center; gap: 9px;
+      width: fit-content;
+      margin-bottom: 36px;
+      color: rgba(255,255,255,.72);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 1.7px; text-transform: uppercase;
+    }
+    .secure-icon {
+      display: inline-grid; place-items: center;
+      width: 28px; height: 28px;
+      border: 1px solid rgba(89,203,232,.44);
+      border-radius: 8px; color: var(--sky); font-size: 13px;
+    }
+    .login-content { width: 100%; max-width: 410px; margin: 0 auto; }
+    .login-content h2 {
+      margin: 0 0 10px;
+      color: #fff; font-size: clamp(29px, 3vw, 38px);
+      font-weight: 700; letter-spacing: -1.2px; line-height: 1.15;
+    }
+    .login-subtitle { margin: 0 0 35px; color: rgba(255,255,255,.61); font-size: 13px; line-height: 1.7; }
+    .form-group { margin-bottom: 22px; }
+    label {
+      display: block; margin-bottom: 10px;
+      color: rgba(255,255,255,.89); font-size: 11px;
+      font-weight: 700; letter-spacing: .65px;
+    }
+    .field-wrap { position: relative; }
+    .field-marker {
+      position: absolute; top: 50%; left: 16px; transform: translateY(-50%);
+      display: grid; place-items: center; width: 17px; height: 17px;
+      color: rgba(255,255,255,.45); pointer-events: none;
+    }
+    .field-marker svg { width: 17px; height: 17px; display: block; }
+    input[type="text"], input[type="password"] {
+      display: block; width: 100%; min-height: 52px;
+      padding: 15px 16px 15px 46px;
+      border: 1px solid rgba(255,255,255,.17);
+      border-radius: 7px;
+      outline: none;
+      background: var(--field);
+      color: #fff;
+      font: inherit; font-size: 13px;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    input::placeholder { color: rgba(255,255,255,.37); }
+    input:focus {
+      border-color: var(--sky);
+      box-shadow: 0 0 0 3px rgba(89,203,232,.14);
+      background: rgba(255,255,255,.12);
+    }
+    .alert-error {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin: 0 0 22px; padding: 13px 14px;
+      border: 1px solid rgba(255,130,143,.42); border-radius: 7px;
+      background: rgba(220,0,30,.16); color: #ffdce1;
+      font-size: 12px; line-height: 1.55;
+    }
+    .alert-error::before {
+      content: "!"; flex: 0 0 18px;
+      display: grid; place-items: center;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--red); color: #fff; font-weight: 800;
+    }
+    .btn-signin {
+      width: 100%; min-height: 53px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-top: 9px; padding: 0 18px;
+      border: 0; border-radius: 7px;
+      background: var(--red); color: #fff;
+      font: inherit; font-size: 13px; font-weight: 800;
+      cursor: pointer; text-align: left;
+      transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+      box-shadow: 0 8px 18px rgba(0,0,0,.13);
+    }
+    .btn-signin .arrow {
+      display: grid; place-items: center;
+      width: 27px; height: 27px; border-radius: 50%;
+      background: rgba(255,255,255,.16); font-size: 18px; line-height: 1;
+      transition: transform .18s ease;
+    }
+    .btn-signin:hover { background: #bd001a; box-shadow: 0 11px 24px rgba(0,0,0,.18); }
+    .btn-signin:hover .arrow { transform: translateX(2px); }
+    .btn-signin:active { transform: translateY(1px); }
+    .panel-bottom {
+      display: flex; justify-content: space-between; align-items: center; gap: 20px;
+      margin-top: 36px; padding-top: 19px;
+      border-top: 1px solid rgba(255,255,255,.13);
+      color: rgba(255,255,255,.42); font-size: 9px;
+      font-weight: 700; letter-spacing: 1.15px; text-transform: uppercase;
+    }
+    .panel-bottom span:last-child { color: rgba(89,203,232,.85); }
+
+    @media (min-width: 1500px) {
+      .page-layout { grid-template-columns: minmax(0, 1.12fr) minmax(500px, .88fr); }
+    }
+    @media (max-width: 920px) {
+      .page-layout { grid-template-columns: minmax(0, 1fr) minmax(360px, .9fr); }
+      .intro-panel { padding-left: 38px; padding-right: 38px; }
+      .intro-panel h1 { letter-spacing: -2px; }
+      .access-panel { padding-left: 34px; padding-right: 34px; }
+    }
+    @media (max-width: 700px) {
+      .site-header { min-height: 76px; padding: 13px 20px; }
+      .brand-mark { width: 45px; height: 45px; flex-basis: 45px; }
+      .brand-title { font-size: 13px; }
+      .brand-subtitle { font-size: 8px; letter-spacing: 1.15px; }
+      .header-right { display: none; }
+      .page-layout { display: flex; flex-direction: column; min-height: calc(100vh - 76px); }
+      .intro-panel { min-height: 260px; padding: 37px 27px 30px; }
+      .intro-panel::before { width: 250px; right: -100px; top: -105px; }
+      .intro-panel::after { width: 4px; height: 90px; bottom: 28px; }
+      .overline { margin-bottom: 17px; font-size: 9px; }
+      .intro-panel h1 { max-width: 500px; font-size: clamp(37px, 10vw, 52px); letter-spacing: -1.9px; }
+      .intro-copy { margin-top: 16px; font-size: 13px; line-height: 1.65; max-width: 480px; }
+      .brand-graphic { display: none; }
+      .intro-meta { margin-top: 18px; font-size: 8px; }
+      .access-panel { flex: 1; min-height: 520px; padding: 35px 27px 28px; }
+      .access-panel::after { width: 4px; }
+      .secure-label { margin-bottom: 27px; }
+      .login-content h2 { font-size: 31px; }
+      .login-subtitle { margin-bottom: 29px; }
+      .panel-bottom { margin-top: 29px; }
+    }
+    @media (max-width: 390px) {
+      .brand-lockup { gap: 10px; }
+      .brand-title { font-size: 12px; }
+      .intro-panel { padding-left: 23px; padding-right: 23px; }
+      .access-panel { padding-left: 23px; padding-right: 23px; }
+      .panel-bottom { font-size: 8px; letter-spacing: .7px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand-lockup">
+      <div class="brand-mark">
+        <img src="/static/img/logo.png" alt="King's School Logo" id="schoolLogo"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='grid';">
+        <span class="brand-fallback" aria-hidden="true">KC</span>
+      </div>
+      <div class="brand-title">
+        King's School The Crown
+        <span class="brand-subtitle">The Crown · Egypt</span>
+      </div>
+    </div>
+    <div class="header-right"><span class="header-rule"></span> HR &amp; Payroll Portal</div>
+  </header>
+
+  <main class="page-layout">
+    <section class="intro-panel" aria-label="Welcome">
+      <div class="overline">People &amp; culture</div>
+      <h1>Your work.<br>Your people.<br><em>One place.</em></h1>
+      <p class="intro-copy">Welcome to the King's School HR &amp; Payroll workspace. Sign in to access your secure staff services.</p>
+
+      <div class="brand-graphic" aria-hidden="true">
+        <div class="graphic-tile navy"></div>
+        <div class="graphic-tile sky"></div>
+        <div class="graphic-tile red"></div>
+        <div class="graphic-tile grey"></div>
+      </div>
+      <div class="intro-meta"><span>King's School The Crown</span><span class="dot"></span><span>Egypt</span></div>
+    </section>
+
+    <section class="access-panel" aria-label="Sign in">
+      <div class="login-content">
+        <div class="secure-label"><span class="secure-icon" aria-hidden="true">↗</span> Secure staff access</div>
+        <h2>Welcome back.</h2>
+        <p class="login-subtitle">Enter your details below to continue to the HR &amp; Payroll System.</p>
+<form method="POST">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="field-wrap">
+              <span class="field-marker" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.6 3.1-5.5 7-5.5s6.3 1.9 7 5.5"/></svg>
+              </span>
+              <input id="username" type="text" name="username" autofocus autocomplete="username" required placeholder="Enter your username">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="field-wrap">
+              <span class="field-marker" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v2"/></svg>
+              </span>
+              <input id="password" type="password" name="password" autocomplete="current-password" required placeholder="Enter your password">
+            </div>
+          </div>
+          <button type="submit" class="btn-signin"><span>Sign in to your account</span><span class="arrow" aria-hidden="true">→</span></button>
+        </form>
+
+        <div class="panel-bottom"><span>Private &amp; secure</span><span>HR &amp; Payroll System</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

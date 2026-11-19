@@ -1,0 +1,296 @@
+2026-10-15 14:38:34,012 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-15 14:38:34,012 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-15 15:03:00,612 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-15 15:03:00,612 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-15 15:05:03,841 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-15 15:05:03,841 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-15 15:29:14,815 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-15 15:29:14,850 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-15 15:35:33,162 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-15 15:35:33,162 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-15 15:41:13,124 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-15 15:41:13,124 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-15 15:42:45,394 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-15 15:42:45,395 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-19 10:24:24,276 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-19 10:24:24,276 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-19 12:03:48,320 WARNING LOGIN DEBUG: user='hr' pwd_col='PasswordHash' active_col='IsActive' rows=[(2, 'hr', 'HR', 'HR Manager', 0, 'Kings@123')]
+2026-10-19 12:03:48,320 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=False
+2026-10-19 12:04:19,092 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-19 12:04:19,092 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-19 12:17:24,383 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-19 12:17:24,383 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=False
+2026-10-19 12:17:37,296 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-19 12:17:37,296 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-19 13:00:55,033 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-19 13:00:55,033 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-19 13:27:34,562 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-19 13:27:34,563 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-19 14:26:22,546 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-19 14:26:22,547 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-19 15:11:28,547 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-19 15:11:28,548 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 11:42:08,076 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 11:42:08,077 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 13:20:37,757 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 13:20:37,758 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 13:38:12,999 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 13:38:12,999 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 13:42:49,380 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 13:42:49,380 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 13:44:25,695 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 13:44:25,695 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 17:30:57,884 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 17:30:57,885 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 17:31:54,317 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 17:31:54,317 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 17:32:55,353 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 17:32:55,353 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 17:45:57,007 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 17:45:57,007 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 17:52:14,837 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 17:52:14,837 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 17:54:43,589 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 17:54:43,589 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 17:57:26,232 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 17:57:26,232 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:00:35,709 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:00:35,709 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:03:08,722 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:03:08,725 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:13:27,106 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:13:27,107 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=False
+2026-10-20 18:13:31,961 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:13:31,961 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:15:50,982 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:15:50,982 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:26:34,106 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:26:34,106 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:31:19,805 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:31:19,805 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:35:23,138 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:35:23,139 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:45:13,916 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:45:13,917 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:51:55,198 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:51:55,198 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 18:57:38,753 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 18:57:38,753 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 19:01:31,405 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 19:01:31,405 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 19:05:20,818 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 19:05:20,818 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 21:49:59,030 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 21:49:59,030 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 21:57:07,784 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 21:57:07,785 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 22:25:00,581 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 22:25:00,581 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 22:34:02,982 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 22:34:02,982 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 22:35:52,599 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 22:35:52,599 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 22:36:35,088 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 22:36:35,088 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 22:45:46,318 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 22:45:46,318 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 22:46:28,710 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 22:46:28,710 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 22:57:52,714 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 22:57:52,714 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:03:19,670 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:03:19,671 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:09:09,203 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:09:09,203 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:12:52,638 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:12:52,638 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:15:25,865 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:15:25,865 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:21:06,489 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:21:06,489 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:22:03,814 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:22:03,814 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:24:24,141 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:24:24,142 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:29:34,983 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:29:34,983 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:39:27,303 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:39:27,303 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:42:36,927 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:42:36,928 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:45:15,015 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:45:15,015 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:48:32,715 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:48:32,716 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:50:01,635 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:50:01,635 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:54:08,174 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:54:08,174 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-20 23:57:43,913 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-20 23:57:43,913 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 00:02:52,876 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 00:02:52,876 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 00:05:55,343 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 00:05:55,343 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 00:10:10,916 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 00:10:10,917 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 00:25:35,223 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 00:25:35,224 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 00:29:42,696 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 00:29:42,697 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 00:31:17,847 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 00:31:17,847 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 00:32:12,286 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 00:32:12,286 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 00:35:03,785 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 00:35:03,785 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 07:50:43,598 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 07:50:43,599 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 07:52:01,705 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 07:52:01,706 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 07:54:50,049 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 07:54:50,050 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 07:58:14,721 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 07:58:14,721 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 08:00:38,401 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 08:00:38,401 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 08:06:13,836 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 08:06:13,836 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 08:11:55,337 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 08:11:55,337 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 08:16:30,927 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 08:16:30,927 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 08:19:17,943 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 08:19:17,943 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 08:22:07,636 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 08:22:07,640 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 08:27:52,603 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 08:27:52,603 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 09:01:32,079 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 09:01:32,079 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 09:10:58,877 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 09:10:58,877 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 09:15:21,028 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 09:15:21,028 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 09:19:16,375 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 09:19:16,376 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 09:24:02,920 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 09:24:02,920 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-21 09:57:13,735 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-21 09:57:13,735 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-26 08:49:28,935 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-26 08:49:28,949 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-26 09:10:36,676 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-26 09:10:36,676 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-26 10:04:20,376 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-26 10:04:20,377 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-26 10:16:10,794 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-26 10:16:10,794 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-26 10:22:04,183 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-26 10:22:04,183 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-26 10:48:21,124 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-26 10:48:21,124 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-26 11:14:10,935 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-26 11:14:10,935 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-26 11:25:37,375 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-26 11:25:37,376 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-27 08:25:08,795 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-27 08:25:08,795 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-27 08:25:27,655 WARNING LOGIN DEBUG: user='amr' pwd_col='PasswordHash' active_col='IsActive' rows=[(4, 'amr', 'HR', 'Amr Hassam', 0, 'amr@123')]
+2026-10-27 08:25:27,655 WARNING LOGIN DEBUG: stored_pw='amr@123' verify=False
+2026-10-27 08:25:41,514 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'Admin', 'Haitham Saleh', 0, 'haitham123')]
+2026-10-27 08:25:41,529 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-10-27 08:26:36,419 WARNING LOGIN DEBUG: user='amr' pwd_col='PasswordHash' active_col='IsActive' rows=[(4, 'amr', 'HR', 'Amr Hassam', 0, 'amr123')]
+2026-10-27 08:26:36,419 WARNING LOGIN DEBUG: stored_pw='amr123' verify=True
+2026-10-27 08:27:15,700 WARNING LOGIN DEBUG: user='abdelrahman' pwd_col='PasswordHash' active_col='IsActive' rows=[(9, 'abdelrahman', 'HR', 'Abdelrahman Nasr', 0, 'nasr123')]
+2026-10-27 08:27:15,700 WARNING LOGIN DEBUG: stored_pw='nasr123' verify=True
+2026-10-27 08:27:25,419 WARNING LOGIN DEBUG: user='abdelrahman' pwd_col='PasswordHash' active_col='IsActive' rows=[(9, 'abdelrahman', 'HR', 'Abdelrahman Nasr', 0, 'nasr123')]
+2026-10-27 08:27:25,419 WARNING LOGIN DEBUG: stored_pw='nasr123' verify=False
+2026-10-27 08:27:31,216 WARNING LOGIN DEBUG: user='abdelrahman' pwd_col='PasswordHash' active_col='IsActive' rows=[(9, 'abdelrahman', 'HR', 'Abdelrahman Nasr', 0, 'nasr123')]
+2026-10-27 08:27:31,216 WARNING LOGIN DEBUG: stored_pw='nasr123' verify=True
+2026-10-27 08:27:42,310 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-27 08:27:42,310 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-27 09:22:26,051 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-27 09:22:26,051 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-10-27 09:25:22,615 WARNING LOGIN DEBUG: user='abdelrahman' pwd_col='PasswordHash' active_col='IsActive' rows=[(9, 'abdelrahman', 'HR', 'Abdelrahman Nasr', 0, 'nasr123')]
+2026-10-27 09:25:22,615 WARNING LOGIN DEBUG: stored_pw='nasr123' verify=True
+2026-10-27 09:47:03,921 WARNING LOGIN DEBUG: user='amr' pwd_col='PasswordHash' active_col='IsActive' rows=[(4, 'amr', 'HR', 'Amr Hassam', 0, 'amr123')]
+2026-10-27 09:47:03,921 WARNING LOGIN DEBUG: stored_pw='amr123' verify=True
+2026-10-27 09:48:17,886 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-10-27 09:48:17,886 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-01 12:19:44,295 WARNING LOGIN DEBUG: user='Haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'Admin', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-01 12:19:44,295 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-01 12:31:07,008 WARNING LOGIN DEBUG: user='Haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-01 12:31:07,008 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-01 15:08:55,010 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-01 15:08:55,010 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-03 11:11:57,673 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-03 11:11:57,673 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-04 09:28:57,839 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-04 09:28:57,839 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-05 10:00:45,772 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-05 10:00:45,772 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-05 11:23:54,604 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 11:23:54,605 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 11:55:33,317 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 11:55:33,317 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 12:51:22,771 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 12:51:22,771 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 12:54:09,362 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 12:54:09,363 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 13:10:38,949 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 13:10:38,949 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 13:17:22,936 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 13:17:22,936 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 13:33:51,961 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 13:33:51,962 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 13:37:00,420 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 13:37:00,420 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 13:49:21,387 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 13:49:21,387 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 14:12:53,658 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 14:12:53,659 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-05 15:07:56,602 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-05 15:07:56,602 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-05 17:58:29,938 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-05 17:58:29,939 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-08 10:28:05,718 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-08 10:28:05,718 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-08 12:59:08,712 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-08 12:59:08,712 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-08 13:36:17,829 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-08 13:36:17,830 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-08 13:57:24,220 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-08 13:57:24,220 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-08 14:17:04,203 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-08 14:17:04,203 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-08 14:27:00,493 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-08 14:27:00,493 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-08 14:51:34,753 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-08 14:51:34,753 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-08 16:25:47,247 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-08 16:25:47,247 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-09 07:50:40,390 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-09 07:50:40,390 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-09 08:05:07,589 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-09 08:05:07,590 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-09 08:14:44,713 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-09 08:14:44,713 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-09 08:16:36,743 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-09 08:16:36,743 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-09 11:14:23,689 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-09 11:14:23,689 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-09 11:45:41,153 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-09 11:45:41,154 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-10 08:58:11,453 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-10 08:58:11,571 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-14 01:03:22,348 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-14 01:03:22,473 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-15 10:42:37,370 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-15 10:42:37,370 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-19 10:27:52,600 WARNING LOGIN DEBUG: user='haitham' pwd_col='PasswordHash' active_col='IsActive' rows=[(8, 'haitham', 'HR', 'Haitham Saleh', 0, 'haitham123')]
+2026-11-19 10:27:52,600 WARNING LOGIN DEBUG: stored_pw='haitham123' verify=True
+2026-11-19 10:34:08,888 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-19 10:34:08,888 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True
+2026-11-19 10:42:14,526 WARNING LOGIN DEBUG: user='admin' pwd_col='PasswordHash' active_col='IsActive' rows=[(1, 'admin', 'Admin', 'System Admin', 0, 'Kings@123')]
+2026-11-19 10:42:14,526 WARNING LOGIN DEBUG: stored_pw='Kings@123' verify=True

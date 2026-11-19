@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+/* Report filters and generated data use the same neutral cards and sky accents as Dashboard. */
+.report-filter-card { max-width: 760px; }
+.report-filter-card input[name="month"] { min-height: 42px; }
+.report-filter-card .btn-primary { min-height: 42px; }
+.report-results-card { margin-top: 24px; }
+.report-results-card .report-results-heading { color: var(--heading); background: var(--card); gap: 16px; }
+.report-results-card .report-results-heading strong { font-family: var(--font-head); font-size: 23px; }
+.report-results-card .report-row-count {
+  display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 99px;
+  background: var(--row-hover); color: var(--text2); font-size: 11px; font-weight: 700;
+}
+.report-results-card tbody td.num, .report-results-card thead th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.report-results-card tbody td:first-child, .report-results-card thead th:first-child { white-space: normal; }
+@media (max-width: 640px) {
+  .report-filter-card { max-width: none; }
+  .report-results-card .report-results-heading { align-items: flex-start; }
+  .report-results-card .report-results-heading strong { font-size: 20px; }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}{{ title or 'Report' }}{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('reports_menu') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+  {% if data %}
+  <button onclick="exportCSV()" class="btn btn-secondary btn-sm">⬇ Export CSV</button>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="card report-filter-card">
+  <form method="POST">
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+      {% if report_type == 'payroll_summary' %}
+      <div class="form-group" style="margin:0;">
+        <label>Payroll Month</label>
+        <input type="month" name="month" value="{{ month }}" required>
+      </div>
+      {% endif %}
+      <button type="submit" class="btn btn-primary">▶ Run Report</button>
+    </div>
+  </form>
+</div>
+
+{% if title %}
+<div class="card report-results-card" style="padding:0;overflow:hidden;">
+  <div class="report-results-heading" style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <strong>{{ title }}</strong>
+    <span class="report-row-count">{{ data|length }} rows</span>
+  </div>
+  <div class="table-wrap">
+    <table id="reportTable">
+      <thead>
+        <tr>{% for c in cols %}<th {% if loop.index > 3 %}class="num"{% endif %}>{{ c }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for row in data %}
+        <tr>
+          {% for cell in row %}
+          <td {% if loop.index0 >= 3 %}class="num" data-val="{{ cell }}"{% endif %}>
+            {% if loop.index0 < 3 %}{{ cell or '—' }}{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% else %}
+        <tr><td colspan="{{ cols|length }}" style="text-align:center;color:var(--text2);padding:32px;">No data found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportCSV() {
+  const table = document.getElementById('reportTable');
+  if (!table) return;
+  const rows = [...table.querySelectorAll('tr')].map(r =>
+    [...r.querySelectorAll('th,td')].map(c => '"' + c.textContent.trim().replace(/"/g,'""') + '"').join(',')
+  );
+  const blob = new Blob([rows.join('\n')], {type: 'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '{{ title or "report" }}.csv'.replace(/ /g,'_').replace(/[—]/g,'');
+  a.click();
+}
+</script>
+{% endblock %}

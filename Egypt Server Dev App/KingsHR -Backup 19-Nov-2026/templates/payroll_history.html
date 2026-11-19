@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block page_title %}Payroll History{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('payroll_history_export', fmt='xlsx') }}" class="btn btn-secondary btn-sm">Excel</a>
+  <a href="{{ url_for('payroll_history_export', fmt='pdf') }}" class="btn btn-secondary btn-sm">PDF</a>
+  <a href="{{ url_for('payroll_menu') }}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+{% block content %}
+{% set total_emps = months|sum(attribute='emps') %}
+{% set total_gross = months|sum(attribute='gross') %}
+{% set total_net = months|sum(attribute='net') %}
+<style>
+  .payroll-history-page {
+    --ph-line: var(--border, rgba(127, 127, 127, .2));
+    --ph-muted: var(--text2, #52677E);
+    --ph-panel: var(--card-bg, var(--surface, rgba(127, 127, 127, .045)));
+    --ph-positive: var(--navy, #143256);
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+  }
+  .payroll-history-page *,
+  .payroll-history-page *::before,
+  .payroll-history-page *::after { box-sizing: border-box; }
+
+  .ph-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .ph-summary-card {
+    min-width: 0;
+    padding: 16px 18px;
+    border: 1px solid var(--ph-line);
+    border-radius: 6px;
+    background: var(--ph-panel);
+  }
+  .ph-summary-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 9px;
+    color: var(--ph-muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+  }
+  .ph-summary-value {
+    display: block;
+    overflow-wrap: anywhere;
+    font-size: clamp(19px, 2vw, 25px);
+    line-height: 1.2;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+  .ph-summary-value.is-net { color: var(--ph-positive); }
+  .ph-summary-footnote { margin: 7px 0 0; color: var(--ph-muted); font-size: 12px; }
+
+  .ph-table-card {
+    min-width: 0;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--ph-line);
+    border-radius: 6px;
+  }
+  .ph-table-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--ph-line);
+  }
+  .ph-table-heading h2 { margin: 0; font-size: 15px; font-weight: 700; }
+  .ph-table-heading p { margin: 5px 0 0; color: var(--ph-muted); font-size: 12px; }
+  .ph-count-pill {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--ph-line);
+    border-radius: 999px;
+    color: var(--ph-muted);
+    font-size: 12px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .payroll-history-page .ph-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .payroll-history-page table {
+    width: 100%;
+    min-width: 1080px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .payroll-history-page thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 12px 13px;
+    border-bottom: 1px solid var(--ph-line);
+    background: var(--ph-panel);
+    color: var(--ph-muted);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .055em;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .payroll-history-page tbody td {
+    padding: 12px 13px;
+    border-bottom: 1px solid var(--ph-line);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .payroll-history-page tbody tr { transition: background-color .15s ease; }
+  .payroll-history-page tbody tr:hover { background: var(--ph-panel); }
+  .payroll-history-page tbody tr:last-child td { border-bottom: 0; }
+  .payroll-history-page .num { text-align: right; }
+  .payroll-history-page .ph-month { font-weight: 700; }
+  .payroll-history-page .ph-meta { color: var(--ph-muted); font-size: 11px; }
+  .payroll-history-page .ph-net-cell { color: var(--ph-positive); font-weight: 750; }
+  .payroll-history-page .ph-actions { white-space: nowrap; }
+  .payroll-history-page .ph-actions .btn { margin: 1px 2px 1px 0; }
+  .ph-empty-state { padding: 42px 20px; text-align: center; }
+  .ph-empty-icon {
+    display: inline-grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    margin-bottom: 12px;
+    border: 1px solid var(--ph-line);
+    border-radius: 6px;
+    color: var(--ph-muted);
+    font-size: 19px;
+  }
+  .ph-empty-state h3 { margin: 0; font-size: 15px; }
+  .ph-empty-state p { margin: 6px 0 0; color: var(--ph-muted); font-size: 13px; }
+  .ph-scroll-hint { display: none; padding: 9px 14px; border-top: 1px solid var(--ph-line); color: var(--ph-muted); font-size: 11px; }
+
+  @media (max-width: 1000px) {
+    .ph-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 600px) {
+    .payroll-history-page { gap: 12px; }
+    .ph-summary-grid { gap: 8px; }
+    .ph-summary-card { padding: 13px; border-radius: 6px; }
+    .ph-summary-label { gap: 5px; font-size: 10px; }
+    .ph-summary-value { font-size: 19px; }
+    .ph-table-heading { align-items: flex-start; padding: 14px; }
+    .ph-table-heading h2 { font-size: 14px; }
+    .ph-count-pill { font-size: 10px; }
+    .ph-scroll-hint { display: block; }
+  }
+  @media print {
+    .payroll-history-page { gap: 10px; }
+    .ph-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .ph-summary-card { padding: 8px 10px; border-radius: 6px; }
+    .ph-summary-label { margin-bottom: 4px; font-size: 8px; }
+    .ph-summary-value { font-size: 13px; }
+    .ph-summary-footnote, .ph-scroll-hint { display: none !important; }
+    .ph-table-card { overflow: visible; border-radius: 0; }
+    .ph-table-heading { padding: 8px 10px; }
+    .payroll-history-page .ph-table-wrap { overflow: visible; }
+    .payroll-history-page table { min-width: 0; width: 100%; font-size: 7.5px; }
+    .payroll-history-page thead th,
+    .payroll-history-page tbody td { padding: 6px 5px; white-space: normal; }
+    .payroll-history-page thead th { position: static; font-size: 6.5px; }
+    .payroll-history-page .ph-actions { display: none; }
+    .payroll-history-page tbody tr { break-inside: avoid; }
+    .ph-table-heading { break-after: avoid; }
+  }
+
+  /* Icons: same outline style as the dashboard */
+  .payroll-history-page .ic { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+  .payroll-history-page .ph-ic { display:inline-flex; color:var(--navy, #143256); }
+  .payroll-history-page .ph-empty-icon .ic { width:22px; height:22px; }
+  [data-theme="dark"] .payroll-history-page .ph-ic { color:var(--sky, #59CBE8); }
+  [data-theme="dark"] .payroll-history-page .ph-summary-value.is-net, [data-theme="dark"] .payroll-history-page .ph-net-cell { color:var(--sky, #59CBE8); }
+</style>
+
+<div class="payroll-history-page">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="pm-cal" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+  <symbol id="pm-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="pm-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="pm-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="pm-file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+</svg>
+  <section class="ph-summary-grid" aria-label="Payroll history summary">
+    <div class="ph-summary-card">
+      <p class="ph-summary-label"><span class="ph-ic" aria-hidden="true"><svg class="ic"><use href="#pm-cal"/></svg></span> Payroll periods</p>
+      <strong class="ph-summary-value">{{ months|length }}</strong>
+      <p class="ph-summary-footnote">Months recorded in history</p>
+    </div>
+    <div class="ph-summary-card">
+      <p class="ph-summary-label"><span class="ph-ic" aria-hidden="true"><svg class="ic"><use href="#pm-users"/></svg></span> Employee entries</p>
+      <strong class="ph-summary-value">{{ total_emps }}</strong>
+      <p class="ph-summary-footnote">Across all recorded payroll runs</p>
+    </div>
+    <div class="ph-summary-card">
+      <p class="ph-summary-label"><span class="ph-ic" aria-hidden="true"><svg class="ic"><use href="#pm-wallet"/></svg></span> Gross payroll</p>
+      <strong class="ph-summary-value" data-val="{{ total_gross }}"></strong>
+      <p class="ph-summary-footnote">Before deductions</p>
+    </div>
+    <div class="ph-summary-card">
+      <p class="ph-summary-label"><span class="ph-ic" aria-hidden="true"><svg class="ic"><use href="#pm-check"/></svg></span> Net payroll</p>
+      <strong class="ph-summary-value is-net" data-val="{{ total_net }}"></strong>
+      <p class="ph-summary-footnote">After deductions</p>
+    </div>
+  </section>
+
+  <section class="card ph-table-card" aria-label="Payroll history records">
+    <header class="ph-table-heading">
+      <div>
+        <h2>Monthly payroll history</h2>
+        <p>Review payroll totals by month, or open a period for its employee-level breakdown.</p>
+      </div>
+      <span class="ph-count-pill"><span class="ph-ic" aria-hidden="true"><svg class="ic"><use href="#pm-file"/></svg></span> {{ months|length }} periods</span>
+    </header>
+
+    {% if months %}
+    <div class="ph-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th><th class="num">Emps</th>
+            <th class="num">Total Gross</th><th class="num">Total SI</th>
+            <th class="num">Total Tax</th><th class="num">Deductions</th>
+            <th class="num">Loan</th><th class="num">Total Ded.</th>
+            <th class="num">Total Net</th><th>Run Date</th><th class="ph-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in months %}
+          <tr>
+            <td class="ph-month">{{ m.month }}</td>
+            <td class="num">{{ m.emps }}</td>
+            <td class="num" data-val="{{ m.gross }}"></td>
+            <td class="num" data-val="{{ m.si }}"></td>
+            <td class="num" data-val="{{ m.tax }}"></td>
+            <td class="num" data-val="{{ m.ded }}"></td>
+            <td class="num" data-val="{{ m.loan }}"></td>
+            <td class="num" data-val="{{ m.total_ded }}"></td>
+            <td class="num ph-net-cell" data-val="{{ m.net }}"></td>
+            <td class="ph-meta">{{ m.run_date or '—' }}</td>
+            <td class="ph-actions">
+              <a href="{{ url_for('payroll_history_detail', month=m.month) }}" class="btn btn-secondary btn-sm" aria-label="View payroll details for {{ m.month }}" title="View details">View</a>
+              <a href="{{ url_for('payroll_history_detail_export', month=m.month, fmt='xlsx') }}" class="btn btn-secondary btn-sm" aria-label="Export {{ m.month }} to Excel" title="Export Excel">Excel</a>
+              <a href="{{ url_for('payroll_history_detail_export', month=m.month, fmt='pdf') }}" class="btn btn-secondary btn-sm" aria-label="Export {{ m.month }} to PDF" title="Export PDF">PDF</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="ph-scroll-hint">Scroll horizontally to view all payroll columns.</div>
+    {% else %}
+    <div class="ph-empty-state">
+      <span class="ph-empty-icon" aria-hidden="true"><svg class="ic"><use href="#pm-file"/></svg></span>
+      <h3>No payroll history found</h3>
+      <p>Completed payroll periods will appear here once recorded.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

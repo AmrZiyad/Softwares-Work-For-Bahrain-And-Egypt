@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block page_title %}Rollback Month Payroll{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('payroll_menu') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;">
+  <div class="card-title">Rollback Payroll Month</div>
+  <div class="alert alert-error">⚠️ This will <strong>permanently delete</strong> all payroll entries for the selected month. This cannot be undone.</div>
+  <form method="POST" onsubmit="return confirm('DELETE ALL payroll for ' + document.querySelector('[name=month]').value + '? This CANNOT be undone!')">
+    <div class="form-group">
+      <label>Select Month to Rollback</label>
+      <select name="month" required>
+        <option value="">— Choose month —</option>
+        {% for m in month_list %}
+        <option value="{{ m }}">{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-danger">↩️ Rollback</button>
+    <a href="{{ url_for('payroll_menu') }}" class="btn btn-secondary" style="margin-left:8px;">Cancel</a>
+  </form>
+</div>
+{% endblock %}

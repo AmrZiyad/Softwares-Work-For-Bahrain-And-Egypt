@@ -1,0 +1,687 @@
+{% extends "base.html" %}
+{% block page_title %}Manual Payroll Entry{% endblock %}
+{% block extra_head %}
+<style>
+/* ── Layout ──────────────────────────────────────────────── */
+.pay-wrap {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .pay-wrap { grid-template-columns: 1fr; }
+}
+
+/* ── Employee banner ─────────────────────────────────────── */
+#empBanner {
+  display: none;
+  background: var(--accent2, #6366f1);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+#empBanner.visible { display: flex; }
+#empBanner .emp-name { font-size: 17px; font-weight: 700; }
+#empBanner .emp-meta { opacity: .8; font-size: 12px; margin-left: auto; }
+
+/* ── Deductions table ────────────────────────────────────── */
+.ded-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.ded-table th {
+  background: var(--bg2, #f3f4f6);
+  color: var(--text2, #6b7280);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 7px 10px;
+  text-align: left;
+}
+.ded-table th:last-child { text-align: right; }
+.ded-table td { padding: 6px 10px; vertical-align: middle; border-bottom: 1px solid var(--border, #e5e7eb); }
+.ded-table td:last-child { text-align: right; font-weight: 600; color: var(--accent, #ef4444); white-space: nowrap; }
+.ded-table tr:last-child td { border-bottom: none; }
+.ded-table input[type=number] {
+  width: 110px;
+  padding: 5px 8px;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--card, #fff);
+  color: var(--text1, #111827);
+  text-align: right;
+}
+.ded-table input[type=number]:focus {
+  outline: none;
+  border-color: var(--accent2, #6366f1);
+  box-shadow: 0 0 0 2px rgba(99,102,241,.15);
+}
+.ded-table .unit-hint { font-size: 11px; color: var(--text2); margin-left: 4px; }
+.total-ded-row td {
+  background: rgba(239,68,68,.08) !important;
+  border-top: 2px solid var(--accent, #ef4444) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--accent, #ef4444) !important;
+  padding: 10px !important;
+}
+
+/* ── Right panel (payslip) ───────────────────────────────── */
+.payslip-panel { position: sticky; top: 0; }
+.payslip-panel .card-title { font-size: 16px; }
+
+.ps-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text2, #6b7280);
+  padding: 10px 0 4px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  margin-bottom: 4px;
+}
+.ps-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.ps-row .ps-label { color: var(--text2, #6b7280); }
+.ps-row .ps-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ps-row.ps-indent .ps-label { padding-left: 10px; font-size: 12px; }
+.ps-row.ps-indent .ps-val { font-size: 12px; font-weight: 500; }
+.ps-divider { border: none; border-top: 1px dashed var(--border, #e5e7eb); margin: 6px 0; }
+
+.ps-total-ded {
+  background: rgba(239,68,68,.08);
+  border: 1px solid rgba(239,68,68,.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+.ps-total-ded .label { font-size: 13px; font-weight: 600; color: var(--accent, #ef4444); }
+.ps-total-ded .value { font-size: 18px; font-weight: 800; color: var(--accent, #ef4444); }
+
+.ps-net {
+  background: linear-gradient(135deg, var(--accent2, #6366f1) 0%, #8b5cf6 100%);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 14px;
+  color: #fff;
+}
+.ps-net .label { font-size: 13px; font-weight: 600; opacity: .9; }
+.ps-net .value { font-size: 22px; font-weight: 800; }
+
+.ps-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text2, #9ca3af);
+}
+.ps-placeholder .ico { font-size: 40px; margin-bottom: 12px; }
+
+/* ── Export buttons ──────────────────────────────────────── */
+.export-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.export-btns .btn { font-size: 12px; padding: 6px 12px; }
+
+/* ── History table ───────────────────────────────────────── */
+.hist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.hist-table th {
+  background: var(--bg2, #f3f4f6);
+  color: var(--text2, #6b7280);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 8px 10px;
+  text-align: right;
+}
+.hist-table th:first-child, .hist-table th:nth-child(2) { text-align: left; }
+.hist-table td { padding: 8px 10px; border-bottom: 1px solid var(--border, #e5e7eb); text-align: right; }
+.hist-table td:first-child, .hist-table td:nth-child(2) { text-align: left; }
+.hist-table tr:hover td { background: var(--bg2, #f9fafb); }
+.hist-table .net-col { font-weight: 700; color: var(--accent2, #6366f1); }
+.hist-table .ded-col { color: var(--accent, #ef4444); }
+
+.num-right { text-align: right; }
+</style>
+{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('payroll_menu') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+
+<!-- Employee banner (shown when employee selected) -->
+<div id="empBanner"{% if sel_emp %} class="visible"{% endif %}>
+  <span style="font-size:22px;">👤</span>
+  <div>
+    <div class="emp-name" id="bannerName">
+      {% if sel_emp %}{{ sel_emp.name }}{% endif %}
+    </div>
+    <div style="font-size:12px;opacity:.8;" id="bannerSub">
+      {% if sel_emp %}{{ sel_emp.emp_id }}{% if sel_emp.dept %} · {{ sel_emp.dept }}{% endif %}{% if sel_emp.job %} · {{ sel_emp.job }}{% endif %}{% endif %}
+    </div>
+  </div>
+  <div class="emp-meta" id="bannerGross">
+    {% if sel_emp %}Gross: <strong>EGP {{ "%.2f"|format(result.gross if result else 0) }}</strong>{% endif %}
+  </div>
+</div>
+
+<div class="pay-wrap">
+<!-- ═══════════════════════════════════════════════════════
+     LEFT: Input form + deductions table
+══════════════════════════════════════════════════════════ -->
+<div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-title">Employee &amp; Payroll Month</div>
+    <form method="POST" id="payForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Payroll Month *</label>
+          <input type="month" name="month" id="month" value="{{ month }}" required>
+        </div>
+        <div class="form-group" style="flex:2;">
+          <label>Employee *</label>
+          <select name="eid" id="empSel" required>
+            <option value="">— Select employee —</option>
+            {% for e in emp_list %}
+            <option value="{{ e.eid }}"
+              {% if sel_emp and sel_emp.eid==e.eid %}selected{% endif %}>
+              {{ e.name }}{% if e.emp_id %} ({{ e.emp_id }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- ── Monthly Deductions Table ── -->
+      <div class="card-title" style="margin-top:4px;margin-bottom:10px;">Monthly Deductions</div>
+      <table class="ded-table">
+        <thead>
+          <tr>
+            <th style="width:40%;">Deduction</th>
+            <th style="width:30%;">Enter</th>
+            <th style="width:30%;text-align:right;">Amount (EGP)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {# Helper: saved_inputs takes priority, then result.inputs, then blank #}
+          {%- set _ab  = saved_inputs.absent_days   if saved_inputs else (result.inputs.absent_days   if result else '') -%}
+          {%- set _lt  = saved_inputs.late_minutes  if saved_inputs else (result.inputs.late_minutes  if result else '') -%}
+          {%- set _sk  = saved_inputs.sick_days     if saved_inputs else (result.inputs.sick_days     if result else '') -%}
+          {%- set _san = saved_inputs.sanction_amount if saved_inputs else (result.ded.sanctions      if result else '') -%}
+          {%- set _oth = saved_inputs.other_amount  if saved_inputs else (result.ded.other            if result else '') -%}
+          {%- set _ln  = saved_inputs.loan          if saved_inputs else (result.loan                 if result else '') -%}
+          <!-- Absences -->
+          <tr>
+            <td>Absences</td>
+            <td>
+              <input type="number" step="0.25" min="0" name="absent_days" id="f_absent"
+                     value="{{ '%.2f'|format(_ab|float) if _ab != '' else '' }}" placeholder="0">
+              <span class="unit-hint">days</span>
+            </td>
+            <td id="amt_absent">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.absences) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Late / Early -->
+          <tr>
+            <td>Late / Early</td>
+            <td>
+              <input type="number" step="1" min="0" name="late_minutes" id="f_late"
+                     value="{{ '%.0f'|format(_lt|float) if _lt != '' else '' }}" placeholder="0">
+              <span class="unit-hint">mins</span>
+            </td>
+            <td id="amt_late">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.lateness) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Sick Leave -->
+          <tr>
+            <td>Sick Leave</td>
+            <td>
+              <input type="number" step="0.25" min="0" name="sick_days" id="f_sick"
+                     value="{{ '%.2f'|format(_sk|float) if _sk != '' else '' }}" placeholder="0">
+              <span class="unit-hint">days</span>
+            </td>
+            <td id="amt_sick">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.sick) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Sanctions (EGP direct) -->
+          <tr>
+            <td>Sanctions</td>
+            <td>
+              <input type="number" step="0.01" min="0" name="sanction_amount" id="f_sanction"
+                     value="{{ '%.2f'|format(_san|float) if _san != '' else '' }}" placeholder="0">
+              <span class="unit-hint">EGP</span>
+            </td>
+            <td id="amt_sanction">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.sanctions) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Other Deductions (EGP direct) -->
+          <tr>
+            <td>Other Deductions</td>
+            <td>
+              <input type="number" step="0.01" min="0" name="other_amount" id="f_other"
+                     value="{{ '%.2f'|format(_oth|float) if _oth != '' else '' }}" placeholder="0">
+              <span class="unit-hint">EGP</span>
+            </td>
+            <td id="amt_other">
+              {% if result %}{{ "EGP %.2f"|format(result.ded.other) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Loan -->
+          <tr>
+            <td>Loan Deduction</td>
+            <td>
+              <input type="number" step="0.01" min="0" name="loan" id="f_loan"
+                     value="{{ '%.2f'|format(_ln|float) if _ln != '' else '' }}" placeholder="0">
+              <span class="unit-hint">EGP</span>
+            </td>
+            <td id="amt_loan">
+              {% if result %}{{ "EGP %.2f"|format(result.loan) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Income Tax (calculated) -->
+          <tr>
+            <td style="color:var(--text2);">Income Tax <small>(calculated)</small></td>
+            <td style="color:var(--text2);font-size:12px;">auto</td>
+            <td id="amt_tax">
+              {% if result %}{{ "EGP %.2f"|format(result.tax.monthly_tax) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          <!-- Total Deductions -->
+          <tr class="total-ded-row">
+            <td colspan="2">TOTAL DEDUCTIONS</td>
+            <td id="amt_total_ded">
+              {% if result %}EGP {{ "%.2f"|format(result.total_ded) }}{% else %}—{% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="form-group" style="margin-top:14px;">
+        <label>Notes</label>
+        <input type="text" name="notes"
+               value="{{ saved_inputs.notes if saved_inputs else '' }}"
+               placeholder="Optional notes for this payroll entry">
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+        <button type="submit" name="action" value="calculate" class="btn btn-secondary" id="btnCalc">
+          🔢 Calculate
+        </button>
+        <button type="submit" name="action" value="save" class="btn btn-primary" id="btnSave"
+                {% if not result %}disabled style="opacity:.5;cursor:not-allowed;"{% endif %}>
+          💾 Save Payroll
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ═══ Deduction History ═══ -->
+  <div class="card">
+    <div class="card-title">
+      Deduction History
+      {% if sel_emp %}<span style="font-size:13px;font-weight:400;color:var(--text2);"> — {{ sel_emp.name }}</span>{% endif %}
+    </div>
+    {% if history %}
+    <div style="overflow-x:auto;">
+    <table class="hist-table">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Gross</th>
+          <th>Absences</th>
+          <th>Late</th>
+          <th>Sick</th>
+          <th>Sanctions</th>
+          <th>Other</th>
+          <th>Loan</th>
+          <th>Tax</th>
+          <th>SI</th>
+          <th>Total Ded.</th>
+          <th>Net Salary</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in history %}
+        <tr>
+          <td>{{ h.month }}</td>
+          <td>{{ "%.0f"|format(h.gross or 0) }}</td>
+          <td>{{ "%.0f"|format(h.absences or 0) }}</td>
+          <td>{{ "%.0f"|format(h.lateness or 0) }}</td>
+          <td>{{ "%.0f"|format(h.sick or 0) }}</td>
+          <td>{{ "%.0f"|format(h.sanctions or 0) }}</td>
+          <td>{{ "%.0f"|format(h.other or 0) }}</td>
+          <td>{{ "%.0f"|format(h.loan or 0) }}</td>
+          <td>{{ "%.0f"|format(h.tax or 0) }}</td>
+          <td>{{ "%.0f"|format(h.si or 0) }}</td>
+          <td class="ded-col">{{ "%.0f"|format(h.total_ded or 0) }}</td>
+          <td class="net-col">{{ "%.0f"|format(h.net or 0) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% elif sel_emp %}
+    <p style="color:var(--text2);padding:20px 0;text-align:center;">No payroll history found for this employee.</p>
+    {% else %}
+    <p style="color:var(--text2);padding:20px 0;text-align:center;">Select an employee to view deduction history.</p>
+    {% endif %}
+  </div>
+</div><!-- end left -->
+
+<!-- ═══════════════════════════════════════════════════════
+     RIGHT: Payslip summary panel
+══════════════════════════════════════════════════════════ -->
+<div class="payslip-panel">
+  <div class="card" id="payslipCard">
+    <div class="card-title">
+      Payslip Summary
+      {% if sel_emp %}<span style="font-size:13px;font-weight:400;color:var(--text2);"> — {{ sel_emp.name }}</span>{% endif %}
+    </div>
+
+    {% if result %}
+    <div id="payslipContent">
+    <!-- Gross Earnings Breakdown -->
+    <div class="ps-section-title">Gross Earnings</div>
+    {% set earn = sel_emp.earnings %}
+    {% set earn_labels = [
+        ('BasicSalary','Basic Salary'),
+        ('HousingAllowance','Housing Allowance'),
+        ('TransportAllowance','Transport Allowance'),
+        ('OtherFixedAllowances','Other Fixed Allow.'),
+        ('VariableAllowances','Variable Allowances'),
+        ('Overtime','Overtime'),
+        ('Bonuses','Bonuses'),
+        ('Commissions','Commissions'),
+        ('Reimbursement','Re-Imbursement'),
+        ('ReallocationAllowance','Re-Allocation Allow.'),
+    ] %}
+    {% for col, lbl in earn_labels %}
+      {% set v = earn.get(col, 0) or 0 %}
+      {% if v %}
+      <div class="ps-row ps-indent">
+        <span class="ps-label">{{ lbl }}</span>
+        <span class="ps-val">{{ "%.2f"|format(v) }}</span>
+      </div>
+      {% endif %}
+    {% endfor %}
+    <div class="ps-row" style="font-weight:700;padding:6px 0 2px;">
+      <span>Total Gross</span>
+      <span id="ps_gross">{{ "%.2f"|format(result.gross) }}</span>
+    </div>
+
+    <hr class="ps-divider">
+
+    <!-- Deductions -->
+    <div class="ps-section-title">Deductions</div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Absences</span>
+      <span class="ps-val" id="ps_absences">{{ "%.2f"|format(result.ded.absences) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Late / Early</span>
+      <span class="ps-val" id="ps_lateness">{{ "%.2f"|format(result.ded.lateness) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Sick Leave</span>
+      <span class="ps-val" id="ps_sick">{{ "%.2f"|format(result.ded.sick) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Sanctions</span>
+      <span class="ps-val" id="ps_sanctions">{{ "%.2f"|format(result.ded.sanctions) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Other Deductions</span>
+      <span class="ps-val" id="ps_other">{{ "%.2f"|format(result.ded.other) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Loan</span>
+      <span class="ps-val" id="ps_loan">{{ "%.2f"|format(result.loan) }}</span>
+    </div>
+    <div class="ps-row ps-indent" style="color:var(--text2);font-size:12px;font-style:italic;">
+      <span class="ps-label">Social Insurance*</span>
+      <span class="ps-val" id="ps_si_note">used in tax calc only</span>
+    </div>
+
+    <hr class="ps-divider">
+
+    <!-- Tax Calculation -->
+    <div class="ps-section-title">Tax Calculation</div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Net before tax</span>
+      <span class="ps-val" id="ps_net_before_tax">{{ "%.2f"|format(result.tax.net_before_tax) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">Personal Exemption (20,000 ÷ 12)</span>
+      <span class="ps-val">({{ "%.2f"|format(result.tax.pe_monthly) }})</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label">SI for tax (min(basic,16,700) × 11%)</span>
+      <span class="ps-val" id="ps_si">{{ "%.2f"|format(result.tax.si_monthly) }}</span>
+    </div>
+    <div class="ps-row ps-indent" style="border-top:1px dashed var(--border);padding-top:4px;margin-top:2px;">
+      <span class="ps-label">Annual taxable</span>
+      <span class="ps-val" id="ps_taxable_annual">{{ "%.2f"|format(result.tax.taxable_annual) }}</span>
+    </div>
+    <!-- Bracket breakdown table -->
+    <div id="ps_brackets_wrap" style="margin:6px 0 4px;">
+      <table style="width:100%;border-collapse:collapse;font-size:11px;" id="ps_brackets_tbl">
+        <thead>
+          <tr>
+            <th style="text-align:left;color:var(--text2);padding:3px 6px;background:var(--bg2);font-weight:600;">Bracket</th>
+            <th style="text-align:center;color:var(--text2);padding:3px 6px;background:var(--bg2);font-weight:600;">Rate</th>
+            <th style="text-align:right;color:var(--text2);padding:3px 6px;background:var(--bg2);font-weight:600;">Tax</th>
+          </tr>
+        </thead>
+        <tbody id="ps_brackets_body">
+          {% for b in result.tax.brackets %}
+          {% if b.base > 0 or b.rate == 0 %}
+          <tr>
+            <td style="padding:3px 6px;color:var(--text2);border-bottom:1px solid var(--border);">{{ b.label }}</td>
+            <td style="padding:3px 6px;text-align:center;border-bottom:1px solid var(--border);">{{ "%.1f"|format(b.rate*100) }}%</td>
+            <td style="padding:3px 6px;text-align:right;border-bottom:1px solid var(--border);">
+              {% if b.tax > 0 %}{{ "%.2f"|format(b.tax) }}{% else %}-{% endif %}
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="ps-row ps-indent" style="border-top:1px solid var(--border);padding-top:4px;">
+      <span class="ps-label" style="font-weight:600;">Annual tax</span>
+      <span class="ps-val" style="color:var(--accent);" id="ps_annual_tax">{{ "%.2f"|format(result.tax.annual_tax) }}</span>
+    </div>
+    <div class="ps-row ps-indent">
+      <span class="ps-label" style="font-weight:600;">Monthly tax</span>
+      <span class="ps-val" style="color:var(--accent);font-size:14px;" id="ps_tax">{{ "%.2f"|format(result.tax.monthly_tax) }}</span>
+    </div>
+
+    <!-- Total Deductions Box -->
+    <div class="ps-total-ded">
+      <span class="label">TOTAL DEDUCTIONS</span>
+      <span class="value" id="ps_total_ded">EGP {{ "%.2f"|format(result.total_ded) }}</span>
+    </div>
+
+    <!-- NET TAKE HOME -->
+    <div class="ps-net">
+      <span class="label">NET TAKE HOME</span>
+      <span class="value" id="ps_net">EGP {{ "%.2f"|format(result.net) }}</span>
+    </div>
+
+    <!-- Day rate info -->
+    <div class="ps-row" style="font-size:12px;color:var(--text2);">
+      <span>Day Rate (Basic ÷ 30)</span>
+      <span id="ps_day_rate">EGP {{ "%.2f"|format(result.ded.day_rate) }}</span>
+    </div>
+
+    <!-- Export buttons -->
+    <div class="export-btns">
+      <button type="button" class="btn btn-secondary" onclick="exportPayslipPDF()">📄 Export PDF</button>
+      <button type="button" class="btn btn-secondary" onclick="exportPayslipExcel()">📊 Export Excel</button>
+      <button type="button" class="btn btn-secondary" onclick="window.print()">🖨️ Print</button>
+    </div>
+    </div><!-- #payslipContent -->
+
+    {% else %}
+    <div class="ps-placeholder" id="payslipPlaceholder">
+      <div class="ico">📋</div>
+      <div style="font-weight:600;margin-bottom:6px;">No Calculation Yet</div>
+      <div style="font-size:13px;">Select an employee, enter deduction values,<br>then click <strong>Calculate</strong>.</div>
+    </div>
+    {% endif %}
+  </div>
+</div><!-- end right -->
+</div><!-- .pay-wrap -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  // ─── State ───────────────────────────────────────────────
+  var empData = null;    // earnings & settings loaded via API
+  var lastResult = null; // last calculate result
+
+  // ─── Employee select → load earnings ─────────────────────
+  var empSel = document.getElementById('empSel');
+  var empBanner = document.getElementById('empBanner');
+
+  function loadEmpData(eid) {
+    if (!eid) { empData = null; updateBanner(); return; }
+    fetch('/api/payroll/emp-earnings?eid=' + eid)
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.error) { empData = null; return; }
+        empData = d;
+        updateBanner();
+        // Pre-fill amount column with 0s if not yet calculated
+        if (!lastResult) { clearAmounts(); }
+      })
+      .catch(function(){ empData = null; });
+  }
+
+  function updateBanner() {
+    if (!empData) { empBanner.classList.remove('visible'); return; }
+    empBanner.classList.add('visible');
+    document.getElementById('bannerName').textContent = empData.name || '';
+    var sub = (empData.emp_id || '') +
+      (empData.dept ? ' · ' + empData.dept : '') +
+      (empData.job  ? ' · ' + empData.job  : '');
+    document.getElementById('bannerSub').textContent = sub;
+    document.getElementById('bannerGross').innerHTML =
+      'Gross: <strong>EGP ' + fmt(empData.gross) + '</strong>';
+  }
+
+  if (empSel) {
+    empSel.addEventListener('change', function(){
+      loadEmpData(this.value);
+    });
+    // If page loaded with employee pre-selected (after calculate/save)
+    if (empSel.value) { loadEmpData(empSel.value); }
+  }
+
+  // ─── Real-time deduction amounts ──────────────────────────
+  // Update the Amount column while user types, using day_rate from empData
+  var dedInputs = ['f_absent','f_late','f_sick','f_sanction','f_other','f_loan'];
+  dedInputs.forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', recalcAmounts);
+  });
+
+  function recalcAmounts() {
+    if (!empData) return;
+    var day_rate = empData.day_rate || 0;
+    var late_div = (empData.settings && empData.settings.LatenessDivisor) ? empData.settings.LatenessDivisor : 480;
+
+    var absent   = parseFloat(document.getElementById('f_absent').value)   || 0;
+    var late     = parseFloat(document.getElementById('f_late').value)      || 0;
+    var sick     = parseFloat(document.getElementById('f_sick').value)      || 0;
+    var sanction = parseFloat(document.getElementById('f_sanction').value)  || 0;
+    var other    = parseFloat(document.getElementById('f_other').value)     || 0;
+    var loan     = parseFloat(document.getElementById('f_loan').value)      || 0;
+
+    var a_abs  = day_rate * absent;
+    var a_late = (day_rate / late_div) * late;
+    var a_sick = day_rate * sick;
+    // sanctions, other and loan are direct EGP inputs
+    var a_san   = sanction;
+    var a_other = other;
+    var a_loan  = loan;
+
+    setAmt('amt_absent',  a_abs);
+    setAmt('amt_late',    a_late);
+    setAmt('amt_sick',    a_sick);
+    setAmt('amt_sanction',a_san);
+    setAmt('amt_other',   a_other);
+    setAmt('amt_loan',    a_loan);
+    // Tax is calculated server-side; show dashes until calculated
+    document.getElementById('amt_tax').textContent = '—';
+    // Partial total (without tax/SI)
+    var partial = a_abs + a_late + a_sick + a_san + a_other + a_loan;
+    setAmt('amt_total_ded', partial, true);
+  }
+
+  function clearAmounts() {
+    ['amt_absent','amt_late','amt_sick','amt_sanction','amt_other','amt_loan','amt_tax']
+      .forEach(function(id){ var el = document.getElementById(id); if (el) el.textContent = '—'; });
+    var td = document.getElementById('amt_total_ded');
+    if (td) td.textContent = '—';
+  }
+
+  function setAmt(id, val, isTotalPartial) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = (isTotalPartial ? '≈ ' : '') + 'EGP ' + fmt(val);
+  }
+
+  function fmt(n) {
+    return parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  // ─── Enable Save button after Calculate ───────────────────
+  var payForm = document.getElementById('payForm');
+  var btnSave = document.getElementById('btnSave');
+
+  {% if result %}
+  // Already have a result — make sure Save is enabled
+  if (btnSave) { btnSave.disabled = false; btnSave.style.opacity = ''; btnSave.style.cursor = ''; }
+  {% endif %}
+
+  // ─── Export functions ──────────────────────────────────────
+  window.exportPayslipPDF = function() {
+    var eid  = document.getElementById('empSel').value;
+    var mon  = document.getElementById('month').value;
+    if (!eid || !mon) { alert('Please calculate payroll first.'); return; }
+    window.open('/payroll/export/pdf?eid=' + eid + '&month=' + mon, '_blank');
+  };
+
+  window.exportPayslipExcel = function() {
+    var eid  = document.getElementById('empSel').value;
+    var mon  = document.getElementById('month').value;
+    if (!eid || !mon) { alert('Please calculate payroll first.'); return; }
+    window.open('/payroll/export/excel?eid=' + eid + '&month=' + mon, '_blank');
+  };
+
+})();
+</script>
+{% endblock %}

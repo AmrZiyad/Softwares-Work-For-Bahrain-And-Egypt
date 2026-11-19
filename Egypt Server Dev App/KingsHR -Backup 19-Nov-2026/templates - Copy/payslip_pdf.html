@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payslip — {{ emp.name }} — {{ month }}</title>
+<style>
+  :root { --navy:#143256; --sky:#59CBE8; --ink:#1B2A3C; --muted:#5B6B7F; --line:#DDE3E9; --paper:#FFFFFF; --pale:#F3F8FB; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Montserrat','Segoe UI',Arial,sans-serif; font-size:12px; line-height:1.5; color:var(--ink); background:var(--paper); }
+  .page { width:100%; max-width:780px; margin:0 auto; padding:28px 32px; background:var(--paper); }
+  .header { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; position:relative; border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:20px; }
+  .header::after { content:''; position:absolute; left:0; bottom:-2px; width:64px; height:3px; background:var(--sky); }
+  .school-name { font-family:'Cormorant Garamond',Garamond,'Times New Roman',serif; font-size:28px; line-height:1.1; font-weight:700; color:var(--navy); }
+  .doc-title { font-size:11px; color:var(--muted); margin-top:5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+  .month-badge { background:var(--navy); color:#fff; border-radius:6px; padding:7px 13px; font-weight:700; font-size:12px; border:1px solid var(--navy); white-space:nowrap; }
+  .emp-box { background:var(--pale); border:1px solid var(--line); border-left:4px solid var(--sky); border-radius:6px; padding:14px 16px; margin-bottom:20px; }
+  .emp-box .row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+  .emp-box .label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin-bottom:3px; }
+  .emp-box .val { font-weight:700; font-size:12px; color:var(--navy); overflow-wrap:anywhere; }
+  .section-title { background:var(--navy); color:#fff; padding:7px 11px; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.1em; margin-bottom:0; border-left:4px solid var(--sky); }
+  .section-title.emphasis-section { background:var(--navy); border-left-color:var(--sky); }
+  table.det { width:100%; border-collapse:collapse; margin-bottom:16px; }
+  table.det td, table.det th { padding:7px 10px; border-bottom:1px solid var(--line); font-size:11px; }
+  table.det td:last-child { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; }
+  table.det tr:last-child td { border-bottom:none; }
+  table.det .sub td { padding-left:22px; color:var(--muted); font-size:11px; }
+  table.det .sub td:last-child { font-weight:400; color:var(--ink); }
+  table.det .total-row td { font-weight:800; font-size:12px; border-top:2px solid var(--sky); padding-top:9px; color:var(--navy); }
+  .tax-bracket-head { background:var(--pale); }
+  .tax-bracket-head th { text-align:left; color:var(--navy); font-weight:700; border-bottom:2px solid var(--sky); }
+  .tax-bracket-head th:nth-child(2) { text-align:center; }
+  .tax-bracket-head th:last-child { text-align:right; }
+  .tax-total-row { border-top:2px solid var(--sky); }
+  .tax-total-value { color:var(--navy); font-weight:800; }
+  .boxes { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:18px 0; }
+  .red-box { background:var(--pale); border:1px solid var(--line); border-left:4px solid var(--sky); border-radius:6px; padding:13px 16px; }
+  .red-box .lbl { font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+  .red-box .amt { font-size:20px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+  .net-box { background:linear-gradient(135deg,#143256,#1E4269); border:1px solid #143256; border-left:4px solid var(--sky); border-radius:6px; padding:13px 16px; }
+  .net-box .lbl { font-size:10px; color:var(--sky); font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+  .net-box .amt { font-size:22px; font-weight:900; color:#fff; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+  .footer { margin-top:26px; border-top:1px solid var(--line); padding-top:10px; font-size:9px; color:#7C8794; text-align:center; }
+  @page { size:A4; margin:12mm; }
+  @media screen and (max-width:600px) {
+    .page { padding:18px 14px; }
+    .header { align-items:flex-start; }
+    .school-name { font-size:24px; }
+    .emp-box .row { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .boxes { grid-template-columns:1fr; }
+  }
+  @media print {
+    html, body { background:#fff !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+    .page { max-width:none; padding:0; }
+    .emp-box, .section-title, .month-badge, .net-box { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+    tr, .boxes, .emp-box { break-inside:avoid; page-break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="school-name">Kings School Egypt</div>
+      <div class="doc-title">Employee Pay Slip</div>
+    </div>
+    <div class="month-badge">{{ month }}</div>
+  </div>
+
+  <div class="emp-box">
+    <div class="row">
+      <div>
+        <div class="label">Employee Name</div>
+        <div class="val">{{ emp.name }}</div>
+      </div>
+      <div>
+        <div class="label">Employee ID</div>
+        <div class="val">{{ emp.emp_id or '—' }}</div>
+      </div>
+      <div>
+        <div class="label">Department</div>
+        <div class="val">{{ emp.dept or '—' }}</div>
+      </div>
+      <div>
+        <div class="label">Job Title</div>
+        <div class="val">{{ emp.job or '—' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gross Earnings -->
+  <div class="section-title">Gross Earnings</div>
+  <table class="det">
+    {% set earn_labels = [
+        ('BasicSalary','Basic Salary'),
+        ('HousingAllowance','Housing Allowance'),
+        ('TransportAllowance','Transport Allowance'),
+        ('OtherFixedAllowances','Other Fixed Allowances'),
+        ('VariableAllowances','Variable Allowances'),
+        ('Overtime','Overtime'),
+        ('Bonuses','Bonuses'),
+        ('Commissions','Commissions / Other Earnings'),
+        ('Reimbursement','Re-Imbursement'),
+        ('ReallocationAllowance','Re-Allocation Allowance'),
+        ('OtherEarnings','Other Earnings'),
+        ('FlightAllowance','Flight Allowance'),
+    ] %}
+    {% for col, lbl in earn_labels %}
+      {% set v = emp.earnings.get(col, 0) or 0 %}
+      {% if v %}
+      <tr class="sub"><td>{{ lbl }}</td><td>{{ "%.2f"|format(v) }}</td></tr>
+      {% endif %}
+    {% endfor %}
+    <tr class="total-row"><td>Total Gross Salary</td><td>EGP {{ "%.2f"|format(gross) }}</td></tr>
+  </table>
+
+  <!-- Tax Calculation Breakdown -->
+  {% if tax_detail %}
+  <div class="section-title emphasis-section">Tax Calculation</div>
+  <table class="det">
+    <tr class="sub"><td>Net before tax</td><td>EGP {{ "%.2f"|format(tax_detail.net_before_tax) }}</td></tr>
+    <tr class="sub"><td>Personal Exemption (20,000 ÷ 12)</td><td>EGP {{ "%.2f"|format(tax_detail.pe_monthly) }}</td></tr>
+    <tr class="sub"><td>SI for tax (min(basic,16,700) × 11%)</td><td>EGP {{ "%.2f"|format(tax_detail.si_monthly) }}</td></tr>
+    <tr class="sub"><td style="font-weight:600;">Annual taxable</td><td style="font-weight:600;">EGP {{ "%.2f"|format(tax_detail.taxable_annual) }}</td></tr>
+  </table>
+  <!-- Bracket table -->
+  <table class="det" style="font-size:11px;margin-bottom:4px;">
+    <tr class="tax-bracket-head">
+      <th>Bracket</th>
+      <th>Rate</th>
+      <th>Annual Tax</th>
+    </tr>
+    {% for b in tax_detail.brackets %}
+    <tr class="sub">
+      <td>{{ b.label }}</td>
+      <td style="text-align:center;">{{ "%.1f"|format(b.rate*100) }}%</td>
+      <td>{% if b.tax > 0 %}{{ "%.2f"|format(b.tax) }}{% else %}-{% endif %}</td>
+    </tr>
+    {% endfor %}
+    <tr class="tax-total-row">
+      <td colspan="2" style="font-weight:700;">Total Annual salary tax</td>
+      <td class="tax-total-value">{{ "%.2f"|format(tax_detail.annual_tax) }}</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="font-weight:700;">Monthly salary tax</td>
+      <td class="tax-total-value">{{ "%.2f"|format(tax_detail.monthly_tax) }}</td>
+    </tr>
+  </table>
+  {% endif %}
+
+  <!-- Deductions -->
+  <div class="section-title emphasis-section">Total Deductions</div>
+  <table class="det">
+    {% if absences %}  <tr class="sub"><td>Absences</td><td>{{ "%.2f"|format(absences) }}</td></tr>{% endif %}
+    {% if lateness %}  <tr class="sub"><td>Late / Early</td><td>{{ "%.2f"|format(lateness) }}</td></tr>{% endif %}
+    {% if sick %}      <tr class="sub"><td>Sick Leave</td><td>{{ "%.2f"|format(sick) }}</td></tr>{% endif %}
+    {% if sanctions %} <tr class="sub"><td>Sanctions</td><td>{{ "%.2f"|format(sanctions) }}</td></tr>{% endif %}
+    {% if other_ded %} <tr class="sub"><td>Other Deductions</td><td>{{ "%.2f"|format(other_ded) }}</td></tr>{% endif %}
+    {% if loan %}      <tr class="sub"><td>Loan Deduction</td><td>{{ "%.2f"|format(loan) }}</td></tr>{% endif %}
+    {% if si %}        <tr class="sub"><td>Social Insurance (11%)</td><td>{{ "%.2f"|format(si) }}</td></tr>{% endif %}
+    {% if tax %}       <tr class="sub"><td>Income Tax</td><td>{{ "%.2f"|format(tax) }}</td></tr>{% endif %}
+  </table>
+
+  <div class="boxes">
+    <div class="red-box">
+      <div class="lbl">Total Deductions</div>
+      <div class="amt">EGP {{ "%.2f"|format(total_ded) }}</div>
+    </div>
+    <div class="net-box">
+      <div class="lbl">Net Take Home</div>
+      <div class="amt">EGP {{ "%.2f"|format(net) }}</div>
+    </div>
+  </div>
+
+  {% if notes %}
+  <div style="margin-top:8px;font-size:11px;color:#6b7280;"><strong>Notes:</strong> {{ notes }}</div>
+  {% endif %}
+
+  <div class="footer">
+    This payslip is system-generated. Kings School Egypt HR &amp; Payroll System.
+    Generated: {% set today = [] %}{{ day_rate and ("Day rate: EGP " ~ "%.2f"|format(day_rate)) or "" }}
+  </div>
+
+</div>
+</body>
+</html>

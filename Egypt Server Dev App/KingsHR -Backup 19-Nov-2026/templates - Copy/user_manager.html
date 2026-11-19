@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+/* User management follows shared Dashboard colors, including modal controls. */
+.user-table-card { --card-accent: var(--sky); }
+.user-table-card .table-wrap { border-radius: var(--radius); }
+.user-table-card tbody td { vertical-align: middle; }
+.user-table-card .btn-danger { min-width: 34px; justify-content: center; }
+.user-modal-backdrop { backdrop-filter: blur(3px); }
+.user-modal-card { --card-accent: var(--sky); box-shadow: 0 24px 70px rgba(0,0,0,.28); }
+.user-modal-card .card-title { font-size: 26px; }
+.user-modal-card .form-row { gap: 14px; }
+.user-modal-card input[type="checkbox"] {
+  width: 16px !important; height: 16px; padding: 0; border: 1px solid var(--border);
+  border-radius: 3px; accent-color: var(--sky); flex: 0 0 auto;
+}
+.user-modal-card button[type="submit"] { min-height: 40px; }
+.user-table-card .badge-blue { color: var(--heading); background: var(--row-hover); border: 1px solid var(--border); }
+@media (max-width: 640px) {
+  .user-modal-backdrop { padding: 10px; align-items: flex-start !important; overflow-y: auto; }
+  .user-modal-card { width: 100% !important; max-width: 100% !important; margin: auto !important; }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}User Manager{% endblock %}
+{% block topbar_actions %}
+  <button onclick="showForm()" class="btn btn-primary btn-sm">+ New User</button>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">‹ Back</a>
+{% endblock %}
+{% block content %}
+
+<!-- New/Edit user modal -->
+<div id="userModal" class="user-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(8,15,22,.64);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div class="card user-modal-card" style="width:480px;max-width:95vw;position:relative;margin:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="card-title" id="modalTitle" style="margin-bottom:0;">New User</div>
+      <button type="button" onclick="hideForm()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <form method="POST" action="{{ url_for('user_save') }}" id="userForm">
+      <input type="hidden" name="uid" id="uid" value="">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Username <span style="color:var(--error)">*</span></label>
+          <input type="text" name="username" id="f_username" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" name="fullname" id="f_fullname" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Role <span style="color:var(--error)">*</span></label>
+          <select name="role" id="f_role" required>
+            {% for r in roles %}
+            <option value="{{ r }}">{{ r }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Password
+            <span id="pwdHint" style="color:var(--text2);font-size:11px;">(leave blank to keep)</span>
+          </label>
+          <input type="password" name="password" id="f_password" autocomplete="new-password">
+        </div>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" name="active" id="f_active" value="1" checked style="width:auto;">
+          <span>Active</span>
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary">💾 Save</button>
+        <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card user-table-card" style="padding:0;overflow:hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Username</th><th>Full Name</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>{{ u.fullname }}</td>
+          <td><span class="badge badge-blue">{{ u.role }}</span></td>
+          <td>
+            {% if u.active %}<span class="badge badge-green">Active</span>
+            {% else %}<span class="badge badge-gray">Inactive</span>{% endif %}
+          </td>
+          <td>
+            <button class="btn btn-secondary btn-sm edit-btn"
+              data-uid="{{ u.uid }}"
+              data-username="{{ u.username | e }}"
+              data-fullname="{{ u.fullname | e }}"
+              data-role="{{ u.role | e }}"
+              data-active="{{ 1 if u.active else 0 }}">
+              ✏️ Edit
+            </button>
+            {% if u.username != session.user %}
+            <form method="POST" action="{{ url_for('user_delete', uid=u.uid) }}" style="display:inline;"
+                  onsubmit="return confirm('Delete user {{ u.username | e }}? This cannot be undone.')">
+              <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const modal = document.getElementById('userModal');
+
+function showForm(isEdit) {
+  modal.style.display = 'flex';
+  document.getElementById('modalTitle').textContent = isEdit ? 'Edit User' : 'New User';
+  document.getElementById('pwdHint').style.display  = isEdit ? 'inline' : 'none';
+  if (!isEdit) {
+    document.getElementById('uid').value            = '';
+    document.getElementById('f_username').value     = '';
+    document.getElementById('f_fullname').value     = '';
+    document.getElementById('f_password').value     = '';
+    document.getElementById('f_role').selectedIndex = 0;
+    document.getElementById('f_active').checked     = true;
+    document.getElementById('f_username').disabled  = false;
+    document.getElementById('f_username').required  = true;
+  }
+}
+
+function hideForm() {
+  modal.style.display = 'none';
+}
+
+// Wire up all Edit buttons via data attributes — no inline JS, no encoding issues
+document.querySelectorAll('.edit-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const uid      = btn.dataset.uid;
+    const username = btn.dataset.username;
+    const fullname = btn.dataset.fullname;
+    const role     = btn.dataset.role;
+    const active   = btn.dataset.active === '1';
+
+    document.getElementById('uid').value           = uid;
+    document.getElementById('f_username').value    = username;
+    document.getElementById('f_fullname').value    = fullname;
+    document.getElementById('f_password').value    = '';
+    document.getElementById('f_active').checked    = active;
+    document.getElementById('f_username').disabled = true;
+    document.getElementById('f_username').required = false;
+
+    // Match role dropdown
+    const sel = document.getElementById('f_role');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === role) { sel.selectedIndex = i; break; }
+    }
+
+    showForm(true);
+  });
+});
+
+// Re-enable username before submit so it submits with the form
+document.getElementById('userForm').addEventListener('submit', function() {
+  document.getElementById('f_username').disabled = false;
+});
+
+// Close on backdrop click
+modal.addEventListener('click', function(e) {
+  if (e.target === modal) hideForm();
+});
+</script>
+{% endblock %}

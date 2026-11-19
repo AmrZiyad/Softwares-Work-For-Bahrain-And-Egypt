@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payslip — {{ emp.name }} — {{ month }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 12px;
+    color: #1a1a2e;
+    background: #fff;
+  }
+  .page {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 36px;
+    background: #fff;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #143256;
+  }
+  .school-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: #143256;
+    letter-spacing: -0.3px;
+  }
+  .doc-subtitle {
+    font-size: 10px;
+    color: #59CBE8;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  .header-right { text-align: right; }
+  .month-badge {
+    display: inline-block;
+    background: #143256;
+    color: #fff;
+    border-radius: 5px;
+    padding: 6px 13px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .issue-date { font-size: 10px; color: #52677E; }
+
+  /* ── Employee info row ── */
+  .emp-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    background: #f0f8fc;
+    border: 1px solid #d9e8ef;
+    border-left: 4px solid #59CBE8;
+    border-radius: 6px;
+    padding: 13px 16px;
+    margin-bottom: 22px;
+  }
+  .emp-field .lbl {
+    font-size: 8.5px;
+    color: #52677E;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .emp-field .val {
+    font-size: 12px;
+    font-weight: 700;
+    color: #143256;
+    word-break: break-word;
+  }
+
+  /* ── Section header ── */
+  .sec-head {
+    background: #143256;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-left: 4px solid #59CBE8;
+    margin-bottom: 0;
+  }
+  .sec-head span { font-size: 11px; font-weight: 700; }
+
+  /* ── Table ── */
+  table.lines {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+  }
+  table.lines td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #e8eef3;
+    font-size: 11.5px;
+  }
+  table.lines td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: #143256;
+  }
+  table.lines tr:last-child td { border-bottom: none; }
+  table.lines .total-row td {
+    font-weight: 800;
+    font-size: 12px;
+    border-top: 2px solid #59CBE8;
+    border-bottom: none;
+    background: #f7fbfd;
+    color: #143256;
+    padding-top: 9px;
+  }
+  table.lines .total-row td:last-child { color: #143256; }
+
+  /* ── Bottom boxes ── */
+  .bottom-boxes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .ded-box {
+    background: #f7fbfd;
+    border: 1px solid #d9e8ef;
+    border-left: 4px solid #59CBE8;
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .ded-box .lbl {
+    font-size: 9px;
+    color: #52677E;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .ded-box .amt {
+    font-size: 21px;
+    font-weight: 800;
+    color: #143256;
+    font-variant-numeric: tabular-nums;
+  }
+  .net-box {
+    background: #143256;
+    border-left: 4px solid #59CBE8;
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .net-box .lbl {
+    font-size: 9px;
+    color: #59CBE8;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .net-box .amt {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Notes ── */
+  .notes-block {
+    margin-top: 14px;
+    font-size: 11px;
+    color: #52677E;
+    background: #fffbe6;
+    border: 1px solid #f0e68c;
+    border-radius: 5px;
+    padding: 9px 13px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 24px;
+    border-top: 1px solid #d9e8ef;
+    padding-top: 10px;
+    font-size: 9px;
+    color: #8a9ab0;
+    text-align: center;
+  }
+
+  @page { size: A4; margin: 12mm; }
+  @media print {
+    html, body { background: #fff !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .page { max-width: none; padding: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="school-name">Kings School Egypt</div>
+      <div class="doc-subtitle">Employee Pay Slip</div>
+    </div>
+    <div class="header-right">
+      <div class="month-badge">{{ month }}</div>
+      <div class="issue-date">Issue Date: {{ today_str }}</div>
+    </div>
+  </div>
+
+  <!-- Employee info -->
+  <div class="emp-row">
+    <div class="emp-field">
+      <div class="lbl">Employee Name</div>
+      <div class="val">{{ emp.name }}</div>
+    </div>
+    <div class="emp-field">
+      <div class="lbl">Employee ID</div>
+      <div class="val">{{ emp.emp_id or '—' }}</div>
+    </div>
+    <div class="emp-field">
+      <div class="lbl">Department</div>
+      <div class="val">{{ emp.dept or '—' }}</div>
+    </div>
+    <div class="emp-field">
+      <div class="lbl">Job Title</div>
+      <div class="val">{{ emp.job or '—' }}</div>
+    </div>
+  </div>
+
+  {% if emp.is_expat and gbp_data %}
+  {# ═══════════════════════════════════════════════════════════
+     EXPAT (non-Egyptian) — GBP payslip only
+     ═══════════════════════════════════════════════════════════ #}
+  {% set gd = gbp_data %}
+  {% set gbp_earn_tot = (gd.get('gbp_component',0)|float)
+                      + (gd.get('gbp_variable_allowances',0)|float)
+                      + (gd.get('gbp_overtime',0)|float)
+                      + (gd.get('gbp_bonuses',0)|float)
+                      + (gd.get('gbp_commissions',0)|float)
+                      + (gd.get('gbp_flight_allowance',0)|float)
+                      + (gd.get('gbp_reimbursement',0)|float)
+                      + (gd.get('gbp_reallocation_allowance',0)|float)
+                      + (gd.get('gbp_other_earnings',0)|float) %}
+  {% set gbp_ded_tot  = (gd.get('gbp_loan_deduction',0)|float) + (gd.get('gbp_other_deductions',0)|float)
+                      + (gd.get('gbp_absent_amount',0)|float) + (gd.get('gbp_late_amount',0)|float)
+                      + (gd.get('gbp_sick_amount',0)|float) + (gd.get('gbp_sanction_amount',0)|float) %}
+  {% set gbp_net_val  = gbp_earn_tot - gbp_ded_tot %}
+
+  <!-- GBP EARNINGS -->
+  <div class="sec-head">GBP Earnings (Expat)<span>Amount (GBP £)</span></div>
+  <table class="lines">
+    {% if gd.get('rate',0)|float > 0 %}<tr><td>GBP/EGP Rate</td><td>{{ "%.4f"|format(gd.get('rate',0)|float) }} EGP/£</td></tr>{% endif %}
+    <tr><td>Base GBP Pay (75% of £{{ "%.2f"|format((gd.get('gbp_component',0)|float)/0.75 if gd.get('gbp_component',0)|float else 0) }})</td><td>£{{ "%.2f"|format(gd.get('gbp_component',0)|float) }}</td></tr>
+    {% if gd.get('gbp_variable_allowances',0)|float > 0 %}<tr><td>Variable Allowances</td><td>£{{ "%.2f"|format(gd.get('gbp_variable_allowances',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_overtime',0)|float > 0 %}<tr><td>Overtime</td><td>£{{ "%.2f"|format(gd.get('gbp_overtime',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_bonuses',0)|float > 0 %}<tr><td>Bonuses</td><td>£{{ "%.2f"|format(gd.get('gbp_bonuses',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_commissions',0)|float > 0 %}<tr><td>Commissions / Other</td><td>£{{ "%.2f"|format(gd.get('gbp_commissions',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_flight_allowance',0)|float > 0 %}<tr><td>Flight Allowance</td><td>£{{ "%.2f"|format(gd.get('gbp_flight_allowance',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_reimbursement',0)|float > 0 %}<tr><td>Re-Imbursement</td><td>£{{ "%.2f"|format(gd.get('gbp_reimbursement',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_reallocation_allowance',0)|float > 0 %}<tr><td>Re-Allocation Allowance</td><td>£{{ "%.2f"|format(gd.get('gbp_reallocation_allowance',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_other_earnings',0)|float > 0 %}<tr><td>Other Earnings</td><td>£{{ "%.2f"|format(gd.get('gbp_other_earnings',0)|float) }}</td></tr>{% endif %}
+    <tr class="total-row"><td>Total GBP Earnings</td><td>£{{ "%.2f"|format(gbp_earn_tot) }}</td></tr>
+  </table>
+
+  <!-- GBP DEDUCTIONS -->
+  <div class="sec-head">GBP Deductions<span>Amount (GBP £)</span></div>
+  <table class="lines">
+    {% if gd.get('gbp_absent_amount',0)|float > 0 %}<tr><td style="color:#dc2626;">Absences ({{ "%.2f"|format(gd.get('gbp_absent_days',0)|float) }}d)</td><td style="color:#dc2626;">— £{{ "%.2f"|format(gd.get('gbp_absent_amount',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_late_amount',0)|float > 0 %}<tr><td style="color:#dc2626;">Late/Early ({{ "%.0f"|format(gd.get('gbp_late_minutes',0)|float) }}min)</td><td style="color:#dc2626;">— £{{ "%.2f"|format(gd.get('gbp_late_amount',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_sick_amount',0)|float > 0 %}<tr><td style="color:#dc2626;">Sick Leave ({{ "%.2f"|format(gd.get('gbp_sick_days',0)|float) }}d)</td><td style="color:#dc2626;">— £{{ "%.2f"|format(gd.get('gbp_sick_amount',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_sanction_amount',0)|float > 0 %}<tr><td style="color:#dc2626;">Sanctions ({{ "%.2f"|format(gd.get('gbp_sanction_days',0)|float) }}d)</td><td style="color:#dc2626;">— £{{ "%.2f"|format(gd.get('gbp_sanction_amount',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_other_deductions',0)|float > 0 %}<tr><td style="color:#dc2626;">Other Deductions</td><td style="color:#dc2626;">— £{{ "%.2f"|format(gd.get('gbp_other_deductions',0)|float) }}</td></tr>{% endif %}
+    {% if gd.get('gbp_loan_deduction',0)|float > 0 %}<tr><td style="color:#dc2626;">Loan Deduction</td><td style="color:#dc2626;">— £{{ "%.2f"|format(gd.get('gbp_loan_deduction',0)|float) }}</td></tr>{% endif %}
+    {% if gbp_ded_tot == 0 %}<tr><td style="color:#52677E;font-style:italic;">No deductions this month</td><td>—</td></tr>{% endif %}
+    <tr class="total-row"><td style="color:#dc2626;">Total GBP Deductions</td><td style="color:#dc2626;">— £{{ "%.2f"|format(gbp_ded_tot) }}</td></tr>
+  </table>
+
+  <!-- GBP Tax Calculation (on EGP component) -->
+  {% if tax_detail %}
+  <div class="sec-head" style="background:#374151;">Tax Calculation (EGP Component)<span>Detail</span></div>
+  <table class="lines">
+    <tr><td>Net before tax</td><td>{{ "%.2f"|format(tax_detail.net_before_tax) }}</td></tr>
+    <tr><td>Personal Exemption (20,000 ÷ 12)</td><td>({{ "%.2f"|format(tax_detail.pe_monthly) }})</td></tr>
+    <tr><td>SI for tax (min(basic,16,700) × 11%)</td><td>{{ "%.2f"|format(tax_detail.si_monthly) }}</td></tr>
+    <tr class="total-row"><td>Monthly tax</td><td style="color:#dc2626;">{{ "%.2f"|format(tax_detail.monthly_tax) }}</td></tr>
+  </table>
+  {% endif %}
+
+  <!-- GBP Bottom boxes -->
+  <div class="bottom-boxes">
+    <div class="ded-box">
+      <div class="lbl">Total GBP Deductions</div>
+      <div class="amt" style="color:#dc2626;">— £{{ "%.2f"|format(gbp_ded_tot) }}</div>
+    </div>
+    <div class="net-box">
+      <div class="lbl">GBP Net Pay</div>
+      <div class="amt">£{{ "%.2f"|format(gbp_net_val) }}</div>
+    </div>
+  </div>
+  <!-- EGP section for Expat (25% portion) -->
+  {% set earn_labels_egp = [
+      ('BasicSalary',           'Basic Salary (EGP)'),
+      ('HousingAllowance',      'Housing Allowance (HRA)'),
+      ('TransportAllowance',    'Transport Allowance'),
+      ('OtherFixedAllowances',  'Fixed Allowances'),
+      ('VariableAllowances',    'Variable Allowances'),
+      ('Overtime',              'Overtime'),
+      ('Bonuses',               'Bonuses'),
+      ('Commissions',           'Other Earnings'),
+      ('Reimbursement',         'Re-Imbursement'),
+      ('ReallocationAllowance', 'Re-Allocation Allowance'),
+      ('FlightAllowance',       'Flight Allowance'),
+  ] %}
+  <div class="sec-head" style="margin-top:14px;">EGP Earnings (25% Portion)<span>Amount (EGP)</span></div>
+  <table class="lines">
+    {% for col, lbl in earn_labels_egp %}
+      {% set v = emp.earnings.get(col, 0) or 0 %}
+      {% if v %}
+      <tr><td>{{ lbl }}</td><td>EGP {{ "%.2f"|format(v) }}</td></tr>
+      {% endif %}
+    {% endfor %}
+    <tr class="total-row"><td>Total EGP Gross</td><td>EGP {{ "%.2f"|format(gross) }}</td></tr>
+  </table>
+
+  <div class="sec-head" style="background:#b91c1c;">EGP Deductions<span>Amount (EGP)</span></div>
+  <table class="lines">
+    {% if si %}        <tr><td>Social Insurance (11%)</td><td>EGP {{ "%.2f"|format(si) }}</td></tr>{% endif %}
+    {% if tax %}       <tr><td style="color:#dc2626;">Income Tax</td><td style="color:#dc2626;">— EGP {{ "%.2f"|format(tax) }}</td></tr>{% endif %}
+    {% if lateness %}  <tr><td style="color:#dc2626;">Late / Early Leave</td><td style="color:#dc2626;">— EGP {{ "%.2f"|format(lateness) }}</td></tr>{% endif %}
+    {% if absences %}  <tr><td style="color:#dc2626;">Absences</td><td style="color:#dc2626;">— EGP {{ "%.2f"|format(absences) }}</td></tr>{% endif %}
+    {% if sick %}      <tr><td style="color:#dc2626;">Sick Leave</td><td style="color:#dc2626;">— EGP {{ "%.2f"|format(sick) }}</td></tr>{% endif %}
+    {% if sanctions %} <tr><td style="color:#dc2626;">Sanctions / Penalty</td><td style="color:#dc2626;">— EGP {{ "%.2f"|format(sanctions) }}</td></tr>{% endif %}
+    {% if loan %}      <tr><td style="color:#dc2626;">Loan</td><td style="color:#dc2626;">— EGP {{ "%.2f"|format(loan) }}</td></tr>{% endif %}
+    {% if other_ded %} <tr><td style="color:#dc2626;">Other Deductions</td><td style="color:#dc2626;">— EGP {{ "%.2f"|format(other_ded) }}</td></tr>{% endif %}
+    <tr class="total-row"><td style="color:#dc2626;">Total EGP Deductions</td><td style="color:#dc2626;">— EGP {{ "%.2f"|format(total_ded) }}</td></tr>
+  </table>
+
+  <div class="bottom-boxes">
+    <div class="ded-box">
+      <div class="lbl">Total EGP Deductions</div>
+      <div class="amt" style="color:#dc2626;">— EGP {{ "%.2f"|format(total_ded) }}</div>
+    </div>
+    <div class="net-box">
+      <div class="lbl">EGP Net (25%)</div>
+      <div class="amt">EGP {{ "%.2f"|format(net) }}</div>
+    </div>
+  </div>
+
+  {% else %}
+  {# ═══════════════════════════════════════════════════════════
+     EGYPTIAN national — EGP payslip only
+     ═══════════════════════════════════════════════════════════ #}
+  {% set earn_labels = [
+      ('BasicSalary',           'Basic Salary'),
+      ('HousingAllowance',      'Housing Allowance (HRA)'),
+      ('TransportAllowance',    'Transport Allowance'),
+      ('OtherFixedAllowances',  'Fixed Allowances'),
+      ('VariableAllowances',    'Variable Allowances'),
+      ('Overtime',              'Overtime'),
+      ('Bonuses',               'Bonuses'),
+      ('Commissions',           'Other Earnings'),
+      ('Reimbursement',         'Re-Imbursement'),
+      ('ReallocationAllowance', 'Re-Allocation Allowance'),
+      ('FlightAllowance',       'Flight Allowance'),
+  ] %}
+  <div class="sec-head">Earnings<span>Amount (EGP)</span></div>
+  <table class="lines">
+    {% for col, lbl in earn_labels %}
+      {% set v = emp.earnings.get(col, 0) or 0 %}
+      {% if v %}
+      <tr><td>{{ lbl }}</td><td>{{ "%.2f"|format(v) }}</td></tr>
+      {% endif %}
+    {% endfor %}
+    <tr class="total-row"><td>Total Gross</td><td>{{ "%.2f"|format(gross) }}</td></tr>
+  </table>
+
+  <!-- EGP DEDUCTIONS -->
+  <div class="sec-head">Deductions<span>Amount (EGP)</span></div>
+  <table class="lines">
+    {% if si %}        <tr><td>Social Insurance (11%)</td><td>{{ "%.2f"|format(si) }}</td></tr>{% endif %}
+    {% if tax %}       <tr><td style="color:#dc2626;">Income Tax</td><td style="color:#dc2626;">— {{ "%.2f"|format(tax) }}</td></tr>{% endif %}
+    {% if lateness %}  <tr><td style="color:#dc2626;">Late / Early Leave</td><td style="color:#dc2626;">— {{ "%.2f"|format(lateness) }}</td></tr>{% endif %}
+    {% if absences %}  <tr><td style="color:#dc2626;">Absences</td><td style="color:#dc2626;">— {{ "%.2f"|format(absences) }}</td></tr>{% endif %}
+    {% if sick %}      <tr><td style="color:#dc2626;">Sick Leave</td><td style="color:#dc2626;">— {{ "%.2f"|format(sick) }}</td></tr>{% endif %}
+    {% if sanctions %} <tr><td style="color:#dc2626;">Sanctions / Penalty</td><td style="color:#dc2626;">— {{ "%.2f"|format(sanctions) }}</td></tr>{% endif %}
+    {% if loan %}      <tr><td style="color:#dc2626;">Loan</td><td style="color:#dc2626;">— {{ "%.2f"|format(loan) }}</td></tr>{% endif %}
+    {% if other_ded %} <tr><td style="color:#dc2626;">Other Deductions</td><td style="color:#dc2626;">— {{ "%.2f"|format(other_ded) }}</td></tr>{% endif %}
+    <tr class="total-row"><td style="color:#dc2626;">Total Deductions</td><td style="color:#dc2626;">— {{ "%.2f"|format(total_ded) }}</td></tr>
+  </table>
+
+  <!-- EGP Tax breakdown -->
+  {% if tax_detail %}
+  <div class="sec-head" style="background:#374151;">Tax Calculation<span>Detail</span></div>
+  <table class="lines">
+    <tr><td>Net before tax</td><td>{{ "%.2f"|format(tax_detail.net_before_tax) }}</td></tr>
+    <tr><td>Personal Exemption (20,000 ÷ 12)</td><td>({{ "%.2f"|format(tax_detail.pe_monthly) }})</td></tr>
+    <tr><td>SI for tax (min(basic,16,700) × 11%)</td><td>{{ "%.2f"|format(tax_detail.si_monthly) }}</td></tr>
+    <tr class="total-row"><td>Monthly tax</td><td style="color:#dc2626;">{{ "%.2f"|format(tax_detail.monthly_tax) }}</td></tr>
+  </table>
+  {% endif %}
+
+  <!-- EGP Bottom boxes -->
+  <div class="bottom-boxes">
+    <div class="ded-box">
+      <div class="lbl">Total Deductions</div>
+      <div class="amt">EGP {{ "%.2f"|format(total_ded) }}</div>
+    </div>
+    <div class="net-box">
+      <div class="lbl">Net Salary</div>
+      <div class="amt">EGP {{ "%.2f"|format(net) }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if notes %}
+  <div class="notes-block"><strong>Notes:</strong> {{ notes }}</div>
+  {% endif %}
+
+  <div class="footer">
+    This payslip is system-generated &nbsp;·&nbsp; Kings School Egypt HR &amp; Payroll System
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payroll Detail — {{ month }}</title>
+<style>
+  /* King's School The Crown — brand palette
+     Navy #143256 · Red #DC001E · Mid-Sky #59CBE8 · Grey #C6C6C6 · White
+     (plain CSS only, so it renders in any PDF engine) */
+  @page {
+    size: A4 landscape;
+    margin: 12mm 10mm 14mm 10mm;
+    @bottom-center { content: "King's School The Crown  ·  HR & Payroll  ·  Page " counter(page) " of " counter(pages); font-size: 8px; color: #52677E; }
+  }
+  body { font-family: 'Montserrat', Arial, Helvetica, sans-serif; font-size: 9px; color: #143256; margin: 0; padding: 0; }
+
+  /* Banner */
+  table.banner { width: 100%; border-collapse: collapse; background: #143256; }
+  table.banner td { padding: 14px 18px; border: none; color: #ffffff; vertical-align: middle; }
+  .school { font-family: Georgia, 'Times New Roman', serif; font-size: 21px; font-weight: bold; color: #ffffff; letter-spacing: .3px; }
+  .eyebrow { font-size: 8px; letter-spacing: 2.5px; text-transform: uppercase; color: #59CBE8; font-weight: bold; margin-top: 3px; }
+  .doc-title { font-family: Georgia, 'Times New Roman', serif; font-size: 17px; color: #ffffff; text-align: right; }
+  .generated { font-size: 8px; color: #C9D6E3; text-align: right; margin-top: 3px; }
+  .sky-rule { height: 4px; background: #59CBE8; font-size: 0; line-height: 0; }
+  .red-tick { width: 46px; height: 3px; background: #DC001E; margin: 12px 0 10px 0; font-size: 0; line-height: 0; }
+
+  /* Summary strip */
+  table.summary { width: 100%; border-collapse: separate; border-spacing: 8px 0; margin: 0 -8px 12px -8px; }
+  table.summary td {
+    width: 25%; background: #F2F9FC; border: 1px solid #D9E0E7; border-left: 4px solid #59CBE8;
+    padding: 8px 12px; text-align: left;
+  }
+  .s-val { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; font-weight: bold; color: #143256; }
+  .s-lbl { font-size: 7.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #52677E; font-weight: bold; margin-top: 2px; }
+
+  /* Data table */
+  table.data { width: 100%; border-collapse: collapse; }
+  table.data th {
+    background: #143256; color: #ffffff; padding: 6px 6px; text-align: left;
+    font-size: 7.5px; letter-spacing: .8px; text-transform: uppercase; border: none;
+  }
+  table.data th.num, table.data td.num { text-align: right; white-space: nowrap; }
+  table.data td { padding: 4.5px 6px; border-bottom: 1px solid #C6C6C6; }
+  table.data tr:nth-child(even) td { background: #F2F9FC; }
+  table.data td.net { background: #E3F5FB; color: #143256; }
+  table.data td.id { font-weight: bold; color: #143256; }
+  table.data tfoot td {
+    background: #E3F5FB; font-weight: bold; color: #143256; border-top: 2px solid #143256; border-bottom: none; padding: 7px 6px;
+  }
+  .note { margin-top: 10px; font-size: 7.5px; color: #52677E; }
+</style>
+</head>
+<body>
+
+<table class="banner">
+  <tr>
+    <td>
+      <div class="school">King's School The Crown</div>
+      <div class="eyebrow">HR &amp; Payroll</div>
+    </td>
+    <td>
+      <div class="doc-title">Payroll Detail — {{ month }}</div>
+      <div class="generated">Generated: {{ generated }}</div>
+    </td>
+  </tr>
+</table>
+<div class="sky-rule">&nbsp;</div>
+<div class="red-tick">&nbsp;</div>
+
+<table class="summary">
+  <tr>
+    <td><div class="s-val">{{ detail|length }}</div><div class="s-lbl">Employees</div></td>
+    <td><div class="s-val">{{ "{:,.2f}".format(totals.gross) }}</div><div class="s-lbl">Total Gross</div></td>
+    <td><div class="s-val">{{ "{:,.2f}".format(totals.total_ded) }}</div><div class="s-lbl">Total Deductions</div></td>
+    <td><div class="s-val">{{ "{:,.2f}".format(totals.net) }}</div><div class="s-lbl">Total Net</div></td>
+  </tr>
+</table>
+
+<table class="data">
+  <thead>
+    <tr>
+      <th>Emp ID</th><th>Name</th><th>Dept</th><th>Job</th>
+      <th class="num">Gross</th><th class="num">SI</th><th class="num">Tax</th>
+      <th class="num">Loan</th><th class="num">Absent</th><th class="num">Late</th>
+      <th class="num">Sick</th><th class="num">Sanctions</th><th class="num">Other</th>
+      <th class="num">Total Ded</th><th class="num">Net</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in detail %}
+    <tr>
+      <td class="id">{{ d.emp_id or '—' }}</td>
+      <td>{{ d.name }}</td>
+      <td>{{ d.dept or '—' }}</td>
+      <td>{{ d.job or '—' }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.gross or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.si or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.tax or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.loan or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.absences or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.lateness or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.sick or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.sanctions or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.other_ded or 0) }}</td>
+      <td class="num">{{ "{:,.2f}".format(d.total_ded or 0) }}</td>
+      <td class="num net"><strong>{{ "{:,.2f}".format(d.net or 0) }}</strong></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4">TOTAL</td>
+      <td class="num">{{ "{:,.2f}".format(totals.gross) }}</td>
+      <td class="num">{{ "{:,.2f}".format(totals.si) }}</td>
+      <td class="num">{{ "{:,.2f}".format(totals.tax) }}</td>
+      <td class="num">{{ "{:,.2f}".format(totals.loan) }}</td>
+      <td class="num" colspan="5"></td>
+      <td class="num">{{ "{:,.2f}".format(totals.total_ded) }}</td>
+      <td class="num">{{ "{:,.2f}".format(totals.net) }}</td>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="note">Confidential — for authorised HR &amp; Finance use only.</div>
+</body>
+</html>
